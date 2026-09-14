@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const db = require("./database");
 
 const app = express();
 
@@ -18,15 +19,34 @@ app.get("/", (req, res) => {
 app.post("/entries", (req, res) => {
     const entry = req.body;
 
-    entries.push(entry);
+    const result = db.prepare(`
+        INSERT INTO entries (date, pumpName, price, totalPrice)
+        VALUES (?, ?, ?, ?)
+    `).run(
+        entry.date,
+        entry.pumpName,
+        entry.price,
+        entry.totalPrice
+    );
 
-    console.log(entry);
-
-    res.json(entry);
+    res.json({
+        id: result.lastInsertRowid,
+        ...entry
+    });
 });
 
+
 app.get("/entries", (req, res) => {
+    const entries = db.prepare("SELECT * FROM entries").all();
+
     res.json(entries);
+});
+app.delete("/entries/:id", (req, res) => {
+    const id = req.params.id;
+
+    db.prepare("DELETE FROM entries WHERE id = ?").run(id);
+
+    res.json({ message: "Entry deleted successfully" });
 });
 
 app.listen(PORT, () => {

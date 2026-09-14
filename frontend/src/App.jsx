@@ -1,11 +1,18 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import AddEntry from "./AddEntry";
 import EntriesTable from "./EntriesTable";
 
 function App() {
     const [entries, setEntries] = useState([]);
+    useEffect(() => {
+    fetch("http://localhost:5000/entries")
+        .then((response) => response.json())
+        .then((data) => {
+            setEntries(data);
+        });
+}, []);
 
     const totalSpending = entries.reduce(
         (total, entry) => total + Number(entry.totalPrice),

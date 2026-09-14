@@ -24,9 +24,15 @@ function EntriesTable({ entries, setEntries }) {
             <td>
     <button
     className="delete-button"
-    onClick={() => {
-        setEntries(entries.filter((_, i) => i !== index));
-    }}
+    onClick={async () => {
+   console.log("Deleting ID:", entry.id);
+
+await fetch(`http://localhost:5000/entries/${entry.id}`, {
+    method: "DELETE"
+});
+
+    setEntries(entries.filter((item) => item.id !== entry.id));
+}}
 >
     Delete
 </button>

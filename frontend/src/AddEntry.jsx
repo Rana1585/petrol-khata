@@ -14,17 +14,17 @@ function AddEntry({ setEntries }) {
         totalPrice: totalPrice
     };
 
-    const response = await fetch("http://localhost:5000/entries", {
+   const response = await fetch("http://localhost:5000/entries", {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
     },
     body: JSON.stringify(newEntry)
-}); 
+});
 
+const savedEntry = await response.json();
 
-    setEntries((entries) => [...entries, newEntry]);
-
+setEntries((entries) => [...entries, savedEntry]);
     setDate("");
     setPumpName("");
     setPrice("");
