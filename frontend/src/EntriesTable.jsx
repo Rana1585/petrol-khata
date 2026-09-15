@@ -1,46 +1,90 @@
-function EntriesTable({ entries, setEntries }) {
+function EntriesTable({ entries, setEntries, setShowAddEntry }) {
     return (
         <section className="entries">
-            <h2>Fuel Entries</h2>
+            <div className="entries-header">
+                <h2>Fuel Entries</h2>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Petrol Pump</th>
-                        <th>Price/Litre</th>
-                        <th>Total Price</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+                <button
+                    className="add-button"
+                    onClick={() => setShowAddEntry(true)}
+                >
+                    +
+                </button>
+            </div>
 
-                <tbody>
-    {entries.map((entry, index) => (
-        <tr key={index}>
-            <td>{entry.date}</td>
-            <td>{entry.pumpName}</td>
-            <td>{entry.price}</td>
-            <td>{entry.totalPrice}</td>
-            <td>
-    <button
-    className="delete-button"
-    onClick={async () => {
-   console.log("Deleting ID:", entry.id);
+            {entries.length === 0 ? (
+                <div className="empty-state">
+                    <div className="empty-icon">⛽</div>
+                    <h3>No fuel entries yet</h3>
+                    <p>Click the + button to add your first entry.</p>
+                </div>
+            ) : (
+                <div className="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Petrol Pump</th>
+                                <th>Price/Litre</th>
+                                <th>Litres</th>
+                                <th>Total Price</th>
+                                <th>Odometer</th>
+                                <th>Distance</th>
+                                <th>Mileage</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
 
-await fetch(`http://localhost:5000/entries/${entry.id}`, {
-    method: "DELETE"
-});
+                        <tbody>
+                            {entries.map((entry) => (
+                                <tr key={entry.id}>
+                                    <td>{entry.date}</td>
+                                    <td>{entry.pumpName}</td>
+                                    <td>Rs {entry.price}</td>
+                                    <td>{entry.litres} L</td>
+                                    <td>Rs {entry.totalPrice}</td>
+                                    <td>{entry.odometer} km</td>
 
-    setEntries(entries.filter((item) => item.id !== entry.id));
-}}
->
-    Delete
-</button>
-</td>
-        </tr>
-    ))}
-</tbody>
-            </table>
+                                    <td>
+                                        {entry.distance !== null
+                                            ? `${entry.distance} km`
+                                            : "—"}
+                                    </td>
+
+                                    <td>
+                                        {entry.mileage !== null
+                                            ? `${Number(entry.mileage).toFixed(2)} km/L`
+                                            : "—"}
+                                    </td>
+
+                                    <td>
+                                        <button
+                                            className="delete-button"
+                                            onClick={async () => {
+                                                await fetch(
+                                                    `http://localhost:5000/entries/${entry.id}`,
+                                                    {
+                                                        method: "DELETE"
+                                                    }
+                                                );
+
+                                                setEntries(
+                                                    entries.filter(
+                                                        (item) =>
+                                                            item.id !== entry.id
+                                                    )
+                                                );
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </section>
     );
 }

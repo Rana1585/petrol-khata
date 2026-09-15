@@ -8,7 +8,9 @@ db.prepare(`
         date TEXT NOT NULL,
         pumpName TEXT NOT NULL,
         price REAL NOT NULL,
-        totalPrice REAL NOT NULL
+        totalPrice REAL NOT NULL,
+        odometer REAL NOT NULL,
+        litres REAL NOT NULL
     )
 `).run();
 
