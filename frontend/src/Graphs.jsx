@@ -16,7 +16,7 @@ function Graphs() {
     const [entries, setEntries] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:5000/entries")
+        fetch("http://192.168.18.72:5000/entries")
             .then((response) => response.json())
             .then((data) => {
                 setEntries(data.entries || []);

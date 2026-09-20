@@ -1,3 +1,4 @@
+
 function EntriesTable({ entries, setEntries, setShowAddEntry }) {
     return (
         <section className="entries">
@@ -15,8 +16,12 @@ function EntriesTable({ entries, setEntries, setShowAddEntry }) {
             {entries.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-icon">⛽</div>
+
                     <h3>No fuel entries yet</h3>
-                    <p>Click the + button to add your first entry.</p>
+
+                    <p>
+                        Click the + button to add your first entry.
+                    </p>
                 </div>
             ) : (
                 <div className="table-container">
@@ -24,6 +29,7 @@ function EntriesTable({ entries, setEntries, setShowAddEntry }) {
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Car</th>
                                 <th>Petrol Pump</th>
                                 <th>Price/Litre</th>
                                 <th>Litres</th>
@@ -39,11 +45,26 @@ function EntriesTable({ entries, setEntries, setShowAddEntry }) {
                             {entries.map((entry) => (
                                 <tr key={entry.id}>
                                     <td>{entry.date}</td>
+
+                                    <td>{entry.carName}</td>
+
                                     <td>{entry.pumpName}</td>
-                                    <td>Rs {entry.price}</td>
-                                    <td>{entry.litres} L</td>
-                                    <td>Rs {entry.totalPrice}</td>
-                                    <td>{entry.odometer} km</td>
+
+                                    <td>
+                                        Rs {entry.price}
+                                    </td>
+
+                                    <td>
+                                        {entry.litres} L
+                                    </td>
+
+                                    <td>
+                                        Rs {entry.totalPrice}
+                                    </td>
+
+                                    <td>
+                                        {entry.odometer} km
+                                    </td>
 
                                     <td>
                                         {entry.distance !== null
@@ -62,7 +83,7 @@ function EntriesTable({ entries, setEntries, setShowAddEntry }) {
                                             className="delete-button"
                                             onClick={async () => {
                                                 await fetch(
-                                                    `http://localhost:5000/entries/${entry.id}`,
+                                                    `http://192.168.18.72:5000/entries/${entry.id}`,
                                                     {
                                                         method: "DELETE"
                                                     }

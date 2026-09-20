@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 
+import { useEffect, useState } from "react";
 import {
     ResponsiveContainer,
     LineChart,
@@ -14,12 +14,8 @@ import {
 
 function Analytics() {
     const [data, setData] = useState(null);
-
-    const [vehicles, setVehicles] =
-        useState([]);
-
-    const [trips, setTrips] =
-        useState([]);
+    const [vehicles, setVehicles] = useState([]);
+    const [trips, setTrips] = useState([]);
 
     const [selectedVehicleId, setSelectedVehicleId] =
         useState("");
@@ -27,44 +23,25 @@ function Analytics() {
     const [selectedTripId, setSelectedTripId] =
         useState("");
 
-    const [loading, setLoading] =
-        useState(true);
-
-    const [refreshing, setRefreshing] =
-        useState(false);
-
-    const [error, setError] =
-        useState("");
-
-    /* =========================
-       LOAD VEHICLES + TRIPS
-    ========================= */
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         async function loadOptions() {
             try {
-                const [
-                    vehiclesResponse,
-                    tripsResponse
-                ] = await Promise.all([
-                    fetch(
-                        "http://192.168.18.72:5000/vehicles"
-                    ),
-                    fetch(
-                        "http://192.168.18.72:5000/trips"
-                    )
-                ]);
+                const [vehiclesResponse, tripsResponse] =
+                    await Promise.all([
+                        fetch("http://192.168.18.72:5000/vehicles"),
+                        fetch("http://192.168.18.72:5000/trips")
+                    ]);
 
                 if (!vehiclesResponse.ok) {
-                    throw new Error(
-                        "Failed to load vehicles"
-                    );
+                    throw new Error("Failed to load vehicles");
                 }
 
                 if (!tripsResponse.ok) {
-                    throw new Error(
-                        "Failed to load trips"
-                    );
+                    throw new Error("Failed to load trips");
                 }
 
                 const vehicleData =
@@ -76,24 +53,18 @@ function Analytics() {
                 setVehicles(
                     vehicleData.filter(
                         (vehicle) =>
-                            Number(
-                                vehicle.active
-                            ) === 1
+                            Number(vehicle.active) === 1
                     )
                 );
 
                 setTrips(tripData);
-            } catch (error) {
-                setError(error.message);
+            } catch (err) {
+                setError(err.message);
             }
         }
 
         loadOptions();
     }, []);
-
-    /* =========================
-       LOAD ANALYTICS
-    ========================= */
 
     useEffect(() => {
         async function loadAnalytics() {
@@ -106,8 +77,7 @@ function Analytics() {
 
                 setError("");
 
-                const params =
-                    new URLSearchParams();
+                const params = new URLSearchParams();
 
                 if (selectedVehicleId) {
                     params.set(
@@ -123,42 +93,22 @@ function Analytics() {
                     );
                 }
 
-                const query =
+                const queryString =
                     params.toString();
 
-                const url = query
-                    ? `http://192.168.18.72:5000/analytics?${query}`
+                const url = queryString
+                    ? `http://192.168.18.72:5000/analytics?${queryString}`
                     : "http://192.168.18.72:5000/analytics";
 
-                const response =
-                    await fetch(url);
+                const response = await fetch(url);
 
                 if (!response.ok) {
-                    const errorText =
+                    const message =
                         await response.text();
 
-                    let message =
-                        "Failed to load analytics";
-
-                    try {
-                        const parsed =
-                            JSON.parse(
-                                errorText
-                            );
-
-                        if (parsed.error) {
-                            message =
-                                parsed.error;
-                        }
-                    } catch {
-                        if (errorText) {
-                            message =
-                                errorText;
-                        }
-                    }
-
                     throw new Error(
-                        message
+                        message ||
+                            "Failed to load analytics"
                     );
                 }
 
@@ -166,8 +116,8 @@ function Analytics() {
                     await response.json();
 
                 setData(result);
-            } catch (error) {
-                setError(error.message);
+            } catch (err) {
+                setError(err.message);
             } finally {
                 setLoading(false);
                 setRefreshing(false);
@@ -180,27 +130,20 @@ function Analytics() {
         selectedTripId
     ]);
 
-    /* =========================
-       RESET INVALID TRIP
-    ========================= */
-
     useEffect(() => {
-        if (
-            !selectedVehicleId ||
-            !selectedTripId
-        ) {
+        if (!selectedTripId || !selectedVehicleId) {
             return;
         }
 
-        const trip = trips.find(
-            (item) =>
-                Number(item.id) ===
+        const selectedTrip = trips.find(
+            (trip) =>
+                Number(trip.id) ===
                 Number(selectedTripId)
         );
 
         if (
-            trip &&
-            Number(trip.vehicleId) !==
+            selectedTrip &&
+            Number(selectedTrip.vehicleId) !==
                 Number(selectedVehicleId)
         ) {
             setSelectedTripId("");
@@ -211,55 +154,35 @@ function Analytics() {
         trips
     ]);
 
-    /* =========================
-       AVAILABLE TRIPS
-    ========================= */
-
     const availableTrips =
         selectedVehicleId
             ? trips.filter(
                   (trip) =>
-                      Number(
-                          trip.vehicleId
-                      ) ===
-                      Number(
-                          selectedVehicleId
-                      )
+                      Number(trip.vehicleId) ===
+                      Number(selectedVehicleId)
               )
             : trips;
-
-    /* =========================
-       LOADING
-    ========================= */
 
     if (loading && !data) {
         return (
             <div className="analytics-page">
                 <div className="page-header">
                     <h1>Analytics</h1>
-
                     <p>
-                        Loading your fuel
-                        analytics...
+                        Loading your fuel analytics...
                     </p>
                 </div>
             </div>
         );
     }
 
-    /* =========================
-       ERROR
-    ========================= */
-
     if (error && !data) {
         return (
             <div className="analytics-page">
                 <div className="page-header">
                     <h1>Analytics</h1>
-
                     <p>
-                        Unable to load
-                        analytics.
+                        Unable to load analytics.
                     </p>
                 </div>
 
@@ -280,8 +203,7 @@ function Analytics() {
         return null;
     }
 
-    const summary =
-        data.summary || {};
+    const summary = data.summary || {};
 
     const spendingByMonth =
         data.spendingByMonth || [];
@@ -301,14 +223,7 @@ function Analytics() {
     const tripAnalytics =
         data.tripAnalytics || [];
 
-    /* =========================
-       FORMATTING
-    ========================= */
-
-    function formatNumber(
-        value,
-        decimals = 2
-    ) {
+    function formatNumber(value, decimals = 2) {
         if (
             value === null ||
             value === undefined ||
@@ -321,8 +236,7 @@ function Analytics() {
             undefined,
             {
                 minimumFractionDigits: 0,
-                maximumFractionDigits:
-                    decimals
+                maximumFractionDigits: decimals
             }
         );
     }
@@ -335,12 +249,13 @@ function Analytics() {
             return "Rs 0";
         }
 
-        return `Rs ${Number(
-            value
-        ).toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
-        })}`;
+        return `Rs ${Number(value).toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }
+        )}`;
     }
 
     function formatMileage(value) {
@@ -351,22 +266,14 @@ function Analytics() {
             return "—";
         }
 
-        return `${formatNumber(
-            value
-        )} km/L`;
+        return `${formatNumber(value)} km/L`;
     }
-
-    /* =========================
-       SELECTED FILTERS
-    ========================= */
 
     const selectedVehicle =
         vehicles.find(
             (vehicle) =>
                 Number(vehicle.id) ===
-                Number(
-                    selectedVehicleId
-                )
+                Number(selectedVehicleId)
         );
 
     const selectedTrip =
@@ -379,9 +286,7 @@ function Analytics() {
     return (
         <div className="analytics-page">
 
-            {/* =========================
-                HEADER
-            ========================= */}
+            {/* HEADER */}
 
             <div
                 className="page-header"
@@ -393,9 +298,8 @@ function Analytics() {
                     <h1>Analytics</h1>
 
                     <p>
-                        Understand your fuel
-                        spending, mileage and
-                        vehicle performance.
+                        Understand your fuel spending,
+                        mileage and vehicle performance.
                     </p>
                 </div>
 
@@ -411,33 +315,21 @@ function Analytics() {
                 )}
             </div>
 
-            {/* =========================
-                FILTERS
-            ========================= */}
+            {/* FILTERS */}
 
             <div
                 className="analytics-card"
                 style={{
                     padding: "20px",
-                    marginBottom: "28px"
+                    marginBottom: "24px"
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent:
-                            "space-between",
-                        alignItems: "center",
-                        gap: "20px",
-                        flexWrap: "wrap"
-                    }}
-                >
+                <div className="analytics-filter-layout">
                     <div>
                         <h3
                             style={{
                                 margin: 0,
-                                marginBottom:
-                                    "5px"
+                                marginBottom: "5px"
                             }}
                         >
                             Analyse your data
@@ -446,59 +338,31 @@ function Analytics() {
                         <p
                             style={{
                                 margin: 0,
-                                fontSize:
-                                    "14px",
+                                fontSize: "14px",
                                 opacity: 0.65
                             }}
                         >
-                            Choose a vehicle
-                            or a specific
-                            trip.
+                            Choose a vehicle or a
+                            specific trip.
                         </p>
                     </div>
 
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "12px",
-                            flexWrap:
-                                "wrap"
-                        }}
-                    >
+                    <div className="analytics-filter-controls">
                         <select
-                            value={
-                                selectedVehicleId
-                            }
-                            onChange={(
-                                event
-                            ) =>
+                            value={selectedVehicleId}
+                            onChange={(event) =>
                                 setSelectedVehicleId(
-                                    event
-                                        .target
-                                        .value
+                                    event.target.value
                                 )
                             }
-                            style={{
-                                minWidth:
-                                    "190px",
-                                padding:
-                                    "10px 12px",
-                                borderRadius:
-                                    "8px",
-                                border:
-                                    "1px solid #d0d5dd",
-                                background:
-                                    "#fff"
-                            }}
+                            className="analytics-select"
                         >
                             <option value="">
                                 All Vehicles
                             </option>
 
                             {vehicles.map(
-                                (
-                                    vehicle
-                                ) => (
+                                (vehicle) => (
                                     <option
                                         key={
                                             vehicle.id
@@ -507,10 +371,7 @@ function Analytics() {
                                             vehicle.id
                                         }
                                     >
-                                        {
-                                            vehicle.name
-                                        }
-
+                                        {vehicle.name}
                                         {vehicle.registration
                                             ? ` — ${vehicle.registration}`
                                             : ""}
@@ -520,30 +381,13 @@ function Analytics() {
                         </select>
 
                         <select
-                            value={
-                                selectedTripId
-                            }
-                            onChange={(
-                                event
-                            ) =>
+                            value={selectedTripId}
+                            onChange={(event) =>
                                 setSelectedTripId(
-                                    event
-                                        .target
-                                        .value
+                                    event.target.value
                                 )
                             }
-                            style={{
-                                minWidth:
-                                    "220px",
-                                padding:
-                                    "10px 12px",
-                                borderRadius:
-                                    "8px",
-                                border:
-                                    "1px solid #d0d5dd",
-                                background:
-                                    "#fff"
-                            }}
+                            className="analytics-select analytics-trip-select"
                         >
                             <option value="">
                                 All Trips
@@ -552,17 +396,10 @@ function Analytics() {
                             {availableTrips.map(
                                 (trip) => (
                                     <option
-                                        key={
-                                            trip.id
-                                        }
-                                        value={
-                                            trip.id
-                                        }
+                                        key={trip.id}
+                                        value={trip.id}
                                     >
-                                        {
-                                            trip.name
-                                        }{" "}
-                                        —{" "}
+                                        {trip.name} —{" "}
                                         {
                                             trip.startLocation
                                         }{" "}
@@ -582,23 +419,11 @@ function Analytics() {
                                     setSelectedVehicleId(
                                         ""
                                     );
-
                                     setSelectedTripId(
                                         ""
                                     );
                                 }}
-                                style={{
-                                    padding:
-                                        "10px 14px",
-                                    borderRadius:
-                                        "8px",
-                                    border:
-                                        "1px solid #d0d5dd",
-                                    background:
-                                        "#fff",
-                                    cursor:
-                                        "pointer"
-                                }}
+                                className="analytics-clear-button"
                             >
                                 Clear
                             </button>
@@ -608,27 +433,11 @@ function Analytics() {
 
                 {(selectedVehicle ||
                     selectedTrip) && (
-                    <div
-                        style={{
-                            marginTop:
-                                "16px",
-                            paddingTop:
-                                "16px",
-                            borderTop:
-                                "1px solid #eaecf0",
-                            fontSize:
-                                "13px",
-                            opacity: 0.7
-                        }}
-                    >
-                        Showing analytics
-                        for{" "}
-
+                    <div className="analytics-filter-summary">
+                        Showing analytics for{" "}
                         {selectedVehicle && (
                             <strong>
-                                {
-                                    selectedVehicle.name
-                                }
+                                {selectedVehicle.name}
                             </strong>
                         )}
 
@@ -638,61 +447,44 @@ function Analytics() {
 
                         {selectedTrip && (
                             <strong>
-                                {
-                                    selectedTrip.name
-                                }
+                                {selectedTrip.name}
                             </strong>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* =========================
-                OVERVIEW
-            ========================= */}
+            {/* OVERVIEW */}
 
             <section
                 style={{
-                    marginBottom:
-                        "32px"
+                    marginBottom: "32px"
                 }}
             >
                 <div
                     style={{
-                        marginBottom:
-                            "14px"
+                        marginBottom: "14px"
                     }}
                 >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
+                    <h2 style={{ margin: 0 }}>
                         Overview
                     </h2>
 
                     <p
                         style={{
-                            margin:
-                                "5px 0 0",
+                            margin: "5px 0 0",
                             opacity: 0.65,
-                            fontSize:
-                                "14px"
+                            fontSize: "14px"
                         }}
                     >
-                        Your most important
-                        fuel numbers at a
-                        glance.
+                        Your most important fuel
+                        numbers at a glance.
                     </p>
                 </div>
 
-                <div
-                    className="dashboard-stats"
-                >
+                <div className="dashboard-stats">
                     <div className="stat-card">
-                        <span>
-                            Total Spending
-                        </span>
+                        <span>Total Spending</span>
 
                         <strong>
                             {formatMoney(
@@ -702,9 +494,7 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>
-                            Fuel Used
-                        </span>
+                        <span>Fuel Used</span>
 
                         <strong>
                             {formatNumber(
@@ -715,9 +505,7 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>
-                            Distance
-                        </span>
+                        <span>Distance</span>
 
                         <strong>
                             {formatNumber(
@@ -728,9 +516,7 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>
-                            Average Mileage
-                        </span>
+                        <span>Average Mileage</span>
 
                         <strong>
                             {formatMileage(
@@ -741,51 +527,36 @@ function Analytics() {
                 </div>
             </section>
 
-            {/* =========================
-                SPENDING
-            ========================= */}
+            {/* SPENDING */}
 
             <section
                 style={{
-                    marginBottom:
-                        "32px"
+                    marginBottom: "32px"
                 }}
             >
                 <div
                     style={{
-                        marginBottom:
-                            "14px"
+                        marginBottom: "14px"
                     }}
                 >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
+                    <h2 style={{ margin: 0 }}>
                         Fuel Spending
                     </h2>
 
                     <p
                         style={{
-                            margin:
-                                "5px 0 0",
+                            margin: "5px 0 0",
                             opacity: 0.65,
-                            fontSize:
-                                "14px"
+                            fontSize: "14px"
                         }}
                     >
-                        See where your fuel
-                        money is going over
-                        time.
+                        See where your fuel money is
+                        going over time.
                     </p>
                 </div>
 
-                <div
-                    className="analytics-grid"
-                >
-                    <div
-                        className="analytics-card"
-                    >
+                <div className="analytics-grid">
+                    <div className="analytics-card">
                         <div
                             style={{
                                 padding:
@@ -798,20 +569,16 @@ function Analytics() {
 
                             <p
                                 style={{
-                                    opacity:
-                                        0.6,
-                                    fontSize:
-                                        "13px"
+                                    opacity: 0.6,
+                                    fontSize: "13px"
                                 }}
                             >
-                                Fuel expenditure
-                                by month
+                                Fuel expenditure by
+                                month
                             </p>
                         </div>
 
-                        <div
-                            className="chart-container"
-                        >
+                        <div className="chart-container">
                             {spendingByMonth.length >
                             0 ? (
                                 <ResponsiveContainer
@@ -855,9 +622,7 @@ function Analytics() {
                         </div>
                     </div>
 
-                    <div
-                        className="analytics-card"
-                    >
+                    <div className="analytics-card">
                         <div
                             style={{
                                 padding:
@@ -865,27 +630,21 @@ function Analytics() {
                             }}
                         >
                             <h3>
-                                Spending by
-                                Vehicle
+                                Spending by Vehicle
                             </h3>
 
                             <p
                                 style={{
-                                    opacity:
-                                        0.6,
-                                    fontSize:
-                                        "13px"
+                                    opacity: 0.6,
+                                    fontSize: "13px"
                                 }}
                             >
-                                Compare fuel
-                                costs between
-                                vehicles
+                                Compare fuel costs
+                                between vehicles
                             </p>
                         </div>
 
-                        <div
-                            className="chart-container"
-                        >
+                        <div className="chart-container">
                             {spendingByVehicle.length >
                             0 ? (
                                 <ResponsiveContainer
@@ -931,48 +690,35 @@ function Analytics() {
                 </div>
             </section>
 
-            {/* =========================
-                MILEAGE
-            ========================= */}
+            {/* MILEAGE */}
 
             <section
                 style={{
-                    marginBottom:
-                        "32px"
+                    marginBottom: "32px"
                 }}
             >
                 <div
                     style={{
-                        marginBottom:
-                            "14px"
+                        marginBottom: "14px"
                     }}
                 >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
+                    <h2 style={{ margin: 0 }}>
                         Mileage & Efficiency
                     </h2>
 
                     <p
                         style={{
-                            margin:
-                                "5px 0 0",
+                            margin: "5px 0 0",
                             opacity: 0.65,
-                            fontSize:
-                                "14px"
+                            fontSize: "14px"
                         }}
                     >
-                        Track how efficiently
-                        your vehicles are
-                        using fuel.
+                        Track how efficiently your
+                        vehicles are using fuel.
                     </p>
                 </div>
 
-                <div
-                    className="analytics-card"
-                >
+                <div className="analytics-card">
                     <div
                         style={{
                             padding:
@@ -985,23 +731,17 @@ function Analytics() {
 
                         <p
                             style={{
-                                opacity:
-                                    0.6,
-                                fontSize:
-                                    "13px"
+                                opacity: 0.6,
+                                fontSize: "13px"
                             }}
                         >
-                            Fuel efficiency
-                            across your
-                            entries
+                            Fuel efficiency across
+                            your entries
                         </p>
                     </div>
 
-                    <div
-                        className="chart-container"
-                    >
-                        {mileageTrend.length >
-                        0 ? (
+                    <div className="chart-container">
+                        {mileageTrend.length > 0 ? (
                             <ResponsiveContainer
                                 width="100%"
                                 height={320}
@@ -1050,343 +790,331 @@ function Analytics() {
                     </div>
                 </div>
 
+                {/* VEHICLE EFFICIENCY */}
+
                 <div
-                    className="analytics-card"
+                    className="analytics-card vehicle-efficiency-card"
                     style={{
-                        marginTop:
-                            "20px"
+                        marginTop: "20px"
                     }}
                 >
-                    <div
-                        style={{
-                            padding:
-                                "20px 20px 10px"
-                        }}
-                    >
-                        <h3>
-                            Vehicle Efficiency
-                        </h3>
+                    <div className="analytics-card-heading">
+                        <div>
+                            <h3>
+                                Vehicle Efficiency
+                            </h3>
 
-                        <p
-                            style={{
-                                opacity:
-                                    0.6,
-                                fontSize:
-                                    "13px"
-                            }}
-                        >
-                            Average, best and
-                            worst recorded
-                            mileage
-                        </p>
+                            <p>
+                                Compare the fuel
+                                efficiency of each
+                                vehicle.
+                            </p>
+                        </div>
                     </div>
 
-                    <div
-                        className="table-container"
-                    >
-                        <table
-                            className="analytics-table"
-                        >
-                            <thead>
-                                <tr>
-                                    <th>
-                                        Vehicle
-                                    </th>
+                    {mileageByVehicle.length > 0 ? (
+                        <div className="vehicle-efficiency-grid">
+                            {mileageByVehicle.map(
+                                (vehicle) => {
+                                    const average =
+                                        Number(
+                                            vehicle.averageMileage
+                                        ) || 0;
 
-                                    <th>
-                                        Average
-                                    </th>
+                                    const best =
+                                        Number(
+                                            vehicle.bestMileage
+                                        ) || 0;
 
-                                    <th>
-                                        Best
-                                    </th>
+                                    const worst =
+                                        Number(
+                                            vehicle.worstMileage
+                                        ) || 0;
 
-                                    <th>
-                                        Worst
-                                    </th>
-                                </tr>
-                            </thead>
+                                    const maxMileage =
+                                        Math.max(
+                                            best,
+                                            average,
+                                            1
+                                        );
 
-                            <tbody>
-                                {mileageByVehicle.length >
-                                0 ? (
-                                    mileageByVehicle.map(
-                                        (
-                                            vehicle
-                                        ) => (
-                                            <tr
-                                                key={
-                                                    vehicle.vehicleId
-                                                }
-                                            >
-                                                <td>
-                                                    <strong>
+                                    const averageWidth =
+                                        Math.min(
+                                            (average /
+                                                maxMileage) *
+                                                100,
+                                            100
+                                        );
+
+                                    return (
+                                        <div
+                                            className="vehicle-efficiency-item"
+                                            key={
+                                                vehicle.vehicleId
+                                            }
+                                        >
+                                            <div className="vehicle-efficiency-top">
+                                                <div>
+                                                    <h4>
                                                         {
                                                             vehicle.vehicleName
                                                         }
-                                                    </strong>
+                                                    </h4>
 
                                                     {vehicle.vehicleRegistration && (
-                                                        <div
-                                                            style={{
-                                                                fontSize:
-                                                                    "12px",
-                                                                opacity:
-                                                                    0.55
-                                                            }}
-                                                        >
+                                                        <span>
                                                             {
                                                                 vehicle.vehicleRegistration
                                                             }
-                                                        </div>
+                                                        </span>
                                                     )}
-                                                </td>
+                                                </div>
 
-                                                <td>
-                                                    {formatMileage(
-                                                        vehicle.averageMileage
-                                                    )}
-                                                </td>
+                                                <div className="vehicle-average">
+                                                    <strong>
+                                                        {formatNumber(
+                                                            average
+                                                        )}
+                                                    </strong>
 
-                                                <td>
-                                                    {formatMileage(
-                                                        vehicle.bestMileage
-                                                    )}
-                                                </td>
+                                                    <small>
+                                                        km/L
+                                                    </small>
+                                                </div>
+                                            </div>
 
-                                                <td>
+                                            <div className="vehicle-efficiency-label">
+                                                <span>
+                                                    Average
+                                                    efficiency
+                                                </span>
+
+                                                <span>
                                                     {formatMileage(
-                                                        vehicle.worstMileage
+                                                        average
                                                     )}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )
-                                ) : (
-                                    <tr>
-                                        <td
-                                            colSpan="4"
-                                            style={{
-                                                textAlign:
-                                                    "center",
-                                                padding:
-                                                    "30px"
-                                            }}
-                                        >
-                                            No mileage
-                                            data
-                                            available.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                </span>
+                                            </div>
+
+                                            <div className="vehicle-efficiency-bar">
+                                                <div
+                                                    className="vehicle-efficiency-bar-fill"
+                                                    style={{
+                                                        width: `${averageWidth}%`
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="vehicle-efficiency-comparison">
+                                                <div>
+                                                    <span>
+                                                        Best
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMileage(
+                                                            best
+                                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div>
+                                                    <span>
+                                                        Lowest
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMileage(
+                                                            worst
+                                                        )}
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                            )}
+                        </div>
+                    ) : (
+                        <div className="analytics-empty-panel">
+                            No mileage data available.
+                        </div>
+                    )}
                 </div>
             </section>
 
-            {/* =========================
-                TRIPS
-            ========================= */}
+            {/* TRIP PERFORMANCE */}
 
             <section
                 style={{
-                    marginBottom:
-                        "32px"
+                    marginBottom: "32px"
                 }}
             >
                 <div
                     style={{
-                        marginBottom:
-                            "14px"
+                        marginBottom: "14px"
                     }}
                 >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
+                    <h2 style={{ margin: 0 }}>
                         Trip Performance
                     </h2>
 
                     <p
                         style={{
-                            margin:
-                                "5px 0 0",
+                            margin: "5px 0 0",
                             opacity: 0.65,
-                            fontSize:
-                                "14px"
+                            fontSize: "14px"
                         }}
                     >
-                        Compare distance,
-                        fuel and cost of
-                        your trips.
+                        Compare the distance, fuel and
+                        cost of your trips.
                     </p>
                 </div>
 
-                <div
-                    className="analytics-card"
-                >
-                    <div
-                        className="table-container"
-                    >
-                        <table
-                            className="analytics-table"
-                        >
-                            <thead>
-                                <tr>
-                                    <th>
-                                        Trip
-                                    </th>
+                <div className="analytics-card trip-performance-card">
+                    {tripAnalytics.length > 0 ? (
+                        <div className="trip-performance-list">
+                            {tripAnalytics.map(
+                                (trip) => (
+                                    <div
+                                        className="trip-performance-item"
+                                        key={trip.id}
+                                    >
+                                        <div className="trip-performance-main">
+                                            <div className="trip-performance-title">
+                                                <h3>
+                                                    {
+                                                        trip.name
+                                                    }
+                                                </h3>
 
-                                    <th>
-                                        Route
-                                    </th>
-
-                                    <th>
-                                        Distance
-                                    </th>
-
-                                    <th>
-                                        Fuel
-                                    </th>
-
-                                    <th>
-                                        Cost
-                                    </th>
-
-                                    <th>
-                                        Mileage
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {tripAnalytics.length >
-                                0 ? (
-                                    tripAnalytics.map(
-                                        (
-                                            trip
-                                        ) => (
-                                            <tr
-                                                key={
-                                                    trip.id
-                                                }
-                                            >
-                                                <td>
-                                                    <strong>
-                                                        {
-                                                            trip.name
-                                                        }
-                                                    </strong>
-                                                </td>
-
-                                                <td>
+                                                <span>
                                                     {
                                                         trip.startLocation
                                                     }{" "}
-                                                    →{" "}
+                                                    <span className="trip-arrow">
+                                                        →
+                                                    </span>{" "}
                                                     {
                                                         trip.destination
                                                     }
-                                                </td>
+                                                </span>
+                                            </div>
 
-                                                <td>
+                                            <div className="trip-performance-mileage">
+                                                <span>
+                                                    Mileage
+                                                </span>
+
+                                                <strong>
+                                                    {formatMileage(
+                                                        trip.mileage
+                                                    )}
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <div className="trip-performance-metrics">
+                                            <div className="trip-metric">
+                                                <span>
+                                                    Distance
+                                                </span>
+
+                                                <strong>
                                                     {formatNumber(
                                                         trip.distance
                                                     )}{" "}
                                                     km
-                                                </td>
+                                                </strong>
+                                            </div>
 
-                                                <td>
+                                            <div className="trip-metric">
+                                                <span>
+                                                    Fuel
+                                                </span>
+
+                                                <strong>
                                                     {formatNumber(
                                                         trip.totalFuel
                                                     )}{" "}
                                                     L
-                                                </td>
+                                                </strong>
+                                            </div>
 
-                                                <td>
+                                            <div className="trip-metric">
+                                                <span>
+                                                    Cost
+                                                </span>
+
+                                                <strong>
                                                     {formatMoney(
                                                         trip.totalCost
                                                     )}
-                                                </td>
+                                                </strong>
+                                            </div>
 
-                                                <td>
-                                                    {formatMileage(
-                                                        trip.mileage
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )
-                                ) : (
-                                    <tr>
-                                        <td
-                                            colSpan="6"
-                                            style={{
-                                                textAlign:
-                                                    "center",
-                                                padding:
-                                                    "30px"
-                                            }}
-                                        >
-                                            No trip
-                                            data
-                                            available.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                            <div className="trip-metric trip-metric-highlight">
+                                                <span>
+                                                    Cost / km
+                                                </span>
+
+                                                <strong>
+                                                    {trip.distance >
+                                                        0
+                                                        ? formatMoney(
+                                                              Number(
+                                                                  trip.totalCost
+                                                              ) /
+                                                                  Number(
+                                                                      trip.distance
+                                                                  )
+                                                          )
+                                                        : "—"}
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    ) : (
+                        <div className="analytics-empty-panel">
+                            No trip data available.
+                        </div>
+                    )}
                 </div>
             </section>
 
-            {/* =========================
-                FUEL PRICE
-            ========================= */}
+            {/* FUEL PRICE */}
 
             <section
                 style={{
-                    marginBottom:
-                        "32px"
+                    marginBottom: "32px"
                 }}
             >
                 <div
                     style={{
-                        marginBottom:
-                            "14px"
+                        marginBottom: "14px"
                     }}
                 >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
+                    <h2 style={{ margin: 0 }}>
                         Fuel Price History
                     </h2>
 
                     <p
                         style={{
-                            margin:
-                                "5px 0 0",
+                            margin: "5px 0 0",
                             opacity: 0.65,
-                            fontSize:
-                                "14px"
+                            fontSize: "14px"
                         }}
                     >
-                        Track how petrol
-                        prices have changed
-                        over time.
+                        Track how petrol prices have
+                        changed over time.
                     </p>
                 </div>
 
-                <div
-                    className="analytics-card"
-                >
-                    <div
-                        className="chart-container"
-                    >
+                <div className="analytics-card">
+                    <div className="chart-container">
                         {fuelPriceHistory.length >
                         0 ? (
                             <ResponsiveContainer
@@ -1438,46 +1166,33 @@ function Analytics() {
                 </div>
             </section>
 
-            {/* =========================
-                QUICK INSIGHTS
-            ========================= */}
+            {/* QUICK INSIGHTS */}
 
             <section>
                 <div
                     style={{
-                        marginBottom:
-                            "14px"
+                        marginBottom: "14px"
                     }}
                 >
-                    <h2
-                        style={{
-                            margin: 0
-                        }}
-                    >
+                    <h2 style={{ margin: 0 }}>
                         Quick Insights
                     </h2>
 
                     <p
                         style={{
-                            margin:
-                                "5px 0 0",
+                            margin: "5px 0 0",
                             opacity: 0.65,
-                            fontSize:
-                                "14px"
+                            fontSize: "14px"
                         }}
                     >
-                        A quick summary of
-                        the selected data.
+                        A quick summary of the selected
+                        data.
                     </p>
                 </div>
 
-                <div
-                    className="dashboard-stats"
-                >
+                <div className="dashboard-stats">
                     <div className="stat-card">
-                        <span>
-                            Fuel Entries
-                        </span>
+                        <span>Fuel Entries</span>
 
                         <strong>
                             {formatNumber(
@@ -1488,9 +1203,7 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>
-                            Average Fuel Cost
-                        </span>
+                        <span>Average Fuel Cost</span>
 
                         <strong>
                             {summary.averageFuelCost !==
@@ -1504,12 +1217,10 @@ function Analytics() {
 
                             <small
                                 style={{
-                                    fontSize:
-                                        "12px",
+                                    fontSize: "12px",
                                     fontWeight:
                                         "normal",
-                                    marginLeft:
-                                        "4px"
+                                    marginLeft: "4px"
                                 }}
                             >
                                 / L
@@ -1518,9 +1229,7 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>
-                            Best Mileage
-                        </span>
+                        <span>Best Mileage</span>
 
                         <strong>
                             {formatMileage(
@@ -1530,9 +1239,7 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>
-                            Lowest Mileage
-                        </span>
+                        <span>Lowest Mileage</span>
 
                         <strong>
                             {formatMileage(
@@ -1546,26 +1253,19 @@ function Analytics() {
     );
 }
 
-/* =========================
-   EMPTY CHART
-========================= */
-
 function EmptyState() {
     return (
         <div
             style={{
                 height: "280px",
                 display: "flex",
-                alignItems:
-                    "center",
-                justifyContent:
-                    "center",
+                alignItems: "center",
+                justifyContent: "center",
                 opacity: 0.55,
                 fontSize: "14px"
             }}
         >
-            No data available for
-            this selection.
+            No data available for this selection.
         </div>
     );
 }
