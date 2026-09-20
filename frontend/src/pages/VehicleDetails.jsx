@@ -20,10 +20,10 @@ function VehicleDetails() {
                 entriesResponse,
                 maintenanceResponse,
             ] = await Promise.all([
-                fetch("http://192.168.18.72:5000/vehicles"),
-                fetch("http://192.168.18.72:5000/entries"),
+                fetch("https://petrol-khata.onrender.com/vehicles"),
+                fetch("https://petrol-khata.onrender.com/entries"),
                 fetch(
-                    "http://192.168.18.72:5000/vehicle-maintenance"
+                    "https://petrol-khata.onrender.com/vehicle-maintenance"
                 ),
             ]);
 

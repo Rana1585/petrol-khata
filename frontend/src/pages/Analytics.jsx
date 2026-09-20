@@ -32,8 +32,8 @@ function Analytics() {
             try {
                 const [vehiclesResponse, tripsResponse] =
                     await Promise.all([
-                        fetch("http://192.168.18.72:5000/vehicles"),
-                        fetch("http://192.168.18.72:5000/trips")
+                        fetch("https://petrol-khata.onrender.com/vehicles"),
+                        fetch("https://petrol-khata.onrender.com/trips")
                     ]);
 
                 if (!vehiclesResponse.ok) {
@@ -97,8 +97,8 @@ function Analytics() {
                     params.toString();
 
                 const url = queryString
-                    ? `http://192.168.18.72:5000/analytics?${queryString}`
-                    : "http://192.168.18.72:5000/analytics";
+                    ? `https://petrol-khata.onrender.com/analytics?${queryString}`
+                    : "https://petrol-khata.onrender.com/analytics";
 
                 const response = await fetch(url);
 

@@ -15,7 +15,7 @@ function Dashboard() {
             setError("");
 
             const response = await fetch(
-                "http://192.168.18.72:5000/dashboard"
+                "https://petrol-khata.onrender.com/dashboard"
             );
 
             if (!response.ok) {

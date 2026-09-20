@@ -48,10 +48,10 @@ function Analytics() {
                     tripsResponse
                 ] = await Promise.all([
                     fetch(
-                        "http://192.168.18.72:5000/vehicles"
+                        "https://petrol-khata.onrender.com/vehicles"
                     ),
                     fetch(
-                        "http://192.168.18.72:5000/trips"
+                        "https://petrol-khata.onrender.com/trips"
                     )
                 ]);
 
@@ -127,8 +127,8 @@ function Analytics() {
                     params.toString();
 
                 const url = query
-                    ? `http://192.168.18.72:5000/analytics?${query}`
-                    : "http://192.168.18.72:5000/analytics";
+                    ? `https://petrol-khata.onrender.com/analytics?${query}`
+                    : "https://petrol-khata.onrender.com/analytics";
 
                 const response =
                     await fetch(url);

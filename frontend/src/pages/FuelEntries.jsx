@@ -31,9 +31,9 @@ function FuelEntries() {
 
             const [entriesResponse, vehiclesResponse, tripsResponse] =
                 await Promise.all([
-                    fetch("http://192.168.18.72:5000/entries"),
-                    fetch("http://192.168.18.72:5000/vehicles"),
-                    fetch("http://192.168.18.72:5000/trips"),
+                    fetch("https://petrol-khata.onrender.com/entries"),
+                    fetch("https://petrol-khata.onrender.com/vehicles"),
+                    fetch("https://petrol-khata.onrender.com/trips"),
                 ]);
 
             if (
@@ -87,7 +87,7 @@ function FuelEntries() {
             setError("");
 
             const response = await fetch(
-                "http://192.168.18.72:5000/entries",
+                "https://petrol-khata.onrender.com/entries",
                 {
                     method: "POST",
                     headers: {
@@ -138,7 +138,7 @@ function FuelEntries() {
             setError("");
 
             const response = await fetch(
-                `http://192.168.18.72:5000/entries/${id}`,
+                `https://petrol-khata.onrender.com/entries/${id}`,
                 {
                     method: "DELETE",
                 }

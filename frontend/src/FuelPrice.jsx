@@ -6,7 +6,7 @@ function FuelPrice() {
 
     useEffect(() => {
         const fetchFuelPrice = () => {
-            fetch("http://192.168.18.72:5000/fuel-price")
+            fetch("https://petrol-khata.onrender.com/fuel-price")
                 .then((response) => response.json())
                 .then((data) => {
                     setPrice(data.price);

@@ -44,9 +44,9 @@ function Vehicles() {
         try {
             const [vehiclesResponse, maintenanceResponse] =
                 await Promise.all([
-                    fetch("http://192.168.18.72:5000/vehicles"),
+                    fetch("https://petrol-khata.onrender.com/vehicles"),
                     fetch(
-                        "http://192.168.18.72:5000/vehicle-maintenance"
+                        "https://petrol-khata.onrender.com/vehicle-maintenance"
                     ),
                 ]);
 
@@ -101,7 +101,7 @@ function Vehicles() {
 
         try {
             const response = await fetch(
-                "http://192.168.18.72:5000/vehicles",
+                "https://petrol-khata.onrender.com/vehicles",
                 {
                     method: "POST",
                     headers: {
@@ -150,7 +150,7 @@ function Vehicles() {
 
         try {
             const response = await fetch(
-                "http://192.168.18.72:5000/vehicle-maintenance",
+                "https://petrol-khata.onrender.com/vehicle-maintenance",
                 {
                     method: "POST",
                     headers: {
@@ -242,7 +242,7 @@ function Vehicles() {
 
         try {
             const response = await fetch(
-                `http://192.168.18.72:5000/vehicles/${vehicleId}`,
+                `https://petrol-khata.onrender.com/vehicles/${vehicleId}`,
                 {
                     method: "DELETE",
                 }

@@ -83,7 +83,7 @@ function EntriesTable({ entries, setEntries, setShowAddEntry }) {
                                             className="delete-button"
                                             onClick={async () => {
                                                 await fetch(
-                                                    `http://192.168.18.72:5000/entries/${entry.id}`,
+                                                    `https://petrol-khata.onrender.com/entries/${entry.id}`,
                                                     {
                                                         method: "DELETE"
                                                     }

@@ -1,409 +1,406 @@
 const db = require("./database");
 
-function validateEntry(entry) {
-    const price = Number(entry.price);
-    const litres = Number(entry.litres);
-    const odometer = Number(entry.odometer);
-    const vehicleId = Number(entry.vehicleId);
-    const tripId =
-        entry.tripId === null ||
-        entry.tripId === undefined ||
-        entry.tripId === ""
-            ? null
-            : Number(entry.tripId);
+function validateEntryData(data) {
+    const {
+        date,
+        vehicleId,
+        pumpName,
+        price,
+        litres,
+        odometer,
+        tripId
+    } = data;
 
-    if (
-        typeof entry.date !== "string" ||
-        entry.date.trim() === ""
-    ) {
+    if (!date) {
         throw new Error("Date is required");
     }
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-        throw new Error("Invalid date format");
+    if (!vehicleId) {
+        throw new Error("Vehicle is required");
     }
 
-    if (!Number.isInteger(vehicleId) || vehicleId <= 0) {
-        throw new Error("Valid vehicle is required");
+    if (!pumpName || !pumpName.trim()) {
+        throw new Error("Pump name is required");
     }
 
-    if (
-        typeof entry.pumpName !== "string" ||
-        entry.pumpName.trim() === ""
-    ) {
-        throw new Error("Petrol pump name is required");
+    if (price === undefined || price === null || Number(price) <= 0) {
+        throw new Error("Price must be greater than 0");
     }
 
-    if (!Number.isFinite(price) || price <= 0) {
-        throw new Error("Price must be greater than zero");
-    }
-
-    if (!Number.isFinite(litres) || litres <= 0) {
-        throw new Error("Litres must be greater than zero");
-    }
-
-    if (!Number.isFinite(odometer) || odometer < 0) {
-        throw new Error("Odometer cannot be negative");
+    if (litres === undefined || litres === null || Number(litres) <= 0) {
+        throw new Error("Litres must be greater than 0");
     }
 
     if (
-        tripId !== null &&
-        (!Number.isInteger(tripId) || tripId <= 0)
+        odometer === undefined ||
+        odometer === null ||
+        Number(odometer) < 0
     ) {
-        throw new Error("Invalid trip");
+        throw new Error("Odometer reading is required");
     }
 
-    return {
-        price,
-        litres,
-        odometer,
-        vehicleId,
-        tripId
-    };
+    if (tripId !== undefined && tripId !== null && tripId !== "") {
+        if (Number(tripId) <= 0) {
+            throw new Error("Invalid trip");
+        }
+    }
 }
 
-function calculateMileage(distance, litres) {
-    if (
-        distance === null ||
-        distance <= 0 ||
-        litres <= 0
-    ) {
-        return null;
-    }
-
-    return Number(
-        (distance / litres).toFixed(2)
-    );
-}
-
-function getPreviousEntry(vehicleId, entryId = null) {
-    if (entryId !== null) {
-        return db
-            .prepare(`
-                SELECT
-                    odometer,
-                    date
-                FROM entries
-                WHERE vehicleId = ?
-                  AND id < ?
-                ORDER BY id DESC
-                LIMIT 1
-            `)
-            .get(vehicleId, entryId);
-    }
-
-    return db
-        .prepare(`
+async function getPreviousEntry(vehicleId, currentEntryId = null) {
+    if (currentEntryId) {
+        const rows = await db`
             SELECT
-                odometer,
-                date
-            FROM entries
-            WHERE vehicleId = ?
-            ORDER BY id DESC
-            LIMIT 1
-        `)
-        .get(vehicleId);
-}
-
-function calculateEntryMetrics(entries) {
-    const previousOdometers = {};
-
-    const calculatedEntries = entries.map((entry) => {
-        const vehicleId = entry.vehicleId;
-
-        let distance = null;
-
-        if (
-            previousOdometers[vehicleId] !==
-            undefined
-        ) {
-            distance =
-                Number(entry.odometer) -
-                previousOdometers[vehicleId];
-
-            if (distance <= 0) {
-                distance = null;
-            }
-        }
-
-        const mileage = calculateMileage(
-            distance,
-            Number(entry.litres)
-        );
-
-        previousOdometers[vehicleId] =
-            Number(entry.odometer);
-
-        return {
-            ...entry,
-            distance,
-            mileage
-        };
-    });
-
-    return calculatedEntries;
-}
-
-function createEntry(entry) {
-    const {
-        price,
-        litres,
-        odometer,
-        vehicleId,
-        tripId
-    } = validateEntry(entry);
-
-    const vehicle = db
-        .prepare(`
-            SELECT id, name, registration
-            FROM vehicles
-            WHERE id = ?
-              AND active = 1
-        `)
-        .get(vehicleId);
-
-    if (!vehicle) {
-        throw new Error("Vehicle not found");
-    }
-
-    if (tripId !== null) {
-        const trip = db
-            .prepare(`
-                SELECT id, vehicleId
-                FROM trips
-                WHERE id = ?
-            `)
-            .get(tripId);
-
-        if (!trip) {
-            throw new Error("Trip not found");
-        }
-
-        if (trip.vehicleId !== vehicleId) {
-            throw new Error(
-                "Trip does not belong to this vehicle"
-            );
-        }
-    }
-
-    const previousEntry =
-        getPreviousEntry(vehicleId);
-
-    let distance = null;
-
-    if (previousEntry) {
-        distance =
-            odometer -
-            Number(previousEntry.odometer);
-
-        if (distance <= 0) {
-            throw new Error(
-                "Odometer must be greater than the previous reading for this vehicle"
-            );
-        }
-    }
-
-    const totalPrice = Number(
-        (price * litres).toFixed(2)
-    );
-
-    const mileage = calculateMileage(
-        distance,
-        litres
-    );
-
-    const result = db
-        .prepare(`
-            INSERT INTO entries (
-                vehicleId,
-                date,
-                pumpName,
-                price,
-                totalPrice,
+                id,
                 odometer,
                 litres,
-                tripId
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `)
-        .run(
-            vehicleId,
-            entry.date,
-            entry.pumpName.trim(),
-            price,
-            totalPrice,
+                date
+            FROM entries
+            WHERE "vehicleId" = ${vehicleId}
+              AND id < ${currentEntryId}
+            ORDER BY id DESC
+            LIMIT 1
+        `;
+
+        return rows[0] || null;
+    }
+
+    const rows = await db`
+        SELECT
+            id,
             odometer,
             litres,
-            tripId
-        );
+            date
+        FROM entries
+        WHERE "vehicleId" = ${vehicleId}
+        ORDER BY id DESC
+        LIMIT 1
+    `;
+
+    return rows[0] || null;
+}
+
+async function createEntry(data) {
+    validateEntryData(data);
+
+    const {
+        date,
+        vehicleId,
+        pumpName,
+        price,
+        litres,
+        odometer,
+        tripId
+    } = data;
+
+    const numericPrice = Number(price);
+    const numericLitres = Number(litres);
+    const numericOdometer = Number(odometer);
+
+    const totalPrice = numericPrice * numericLitres;
+
+    const previousEntry = await getPreviousEntry(vehicleId);
+
+    let distance = null;
+    let mileage = null;
+
+    if (previousEntry) {
+        distance = numericOdometer - Number(previousEntry.odometer);
+
+        if (distance < 0) {
+            throw new Error(
+                "Odometer reading cannot be lower than the previous reading"
+            );
+        }
+
+        if (numericLitres > 0 && distance > 0) {
+            mileage = distance / numericLitres;
+        }
+    }
+
+    const rows = await db`
+        INSERT INTO entries (
+            "vehicleId",
+            date,
+            "pumpName",
+            price,
+            "totalPrice",
+            odometer,
+            litres,
+            "tripId"
+        )
+        VALUES (
+            ${Number(vehicleId)},
+            ${date},
+            ${pumpName.trim()},
+            ${numericPrice},
+            ${totalPrice},
+            ${numericOdometer},
+            ${numericLitres},
+            ${
+                tripId === undefined ||
+                tripId === null ||
+                tripId === ""
+                    ? null
+                    : Number(tripId)
+            }
+        )
+        RETURNING *
+    `;
+
+    const entry = rows[0];
 
     return {
-        id: result.lastInsertRowid,
-        vehicleId,
-        vehicleName: vehicle.name,
-        vehicleRegistration:
-            vehicle.registration,
-        date: entry.date,
-        pumpName: entry.pumpName.trim(),
-        price,
-        totalPrice,
-        odometer,
-        litres,
-        tripId,
+        ...entry,
         distance,
         mileage
     };
 }
 
-function getAllEntries() {
-    const entries = db
-        .prepare(`
-            SELECT
-                entries.id,
-                entries.vehicleId,
-                vehicles.name AS vehicleName,
-                vehicles.registration AS vehicleRegistration,
-                entries.date,
-                entries.pumpName,
-                entries.price,
-                entries.totalPrice,
-                entries.odometer,
-                entries.litres,
-                entries.tripId
+async function getAllEntries() {
+    const entries = await db`
+        SELECT
+            e.id,
+            e."vehicleId",
+            v.name AS "vehicleName",
+            v.registration AS "vehicleRegistration",
+            e.date,
+            e."pumpName",
+            e.price,
+            e."totalPrice",
+            e.odometer,
+            e.litres,
+            e."tripId",
+            t.name AS "tripName"
+        FROM entries e
+        JOIN vehicles v
+            ON v.id = e."vehicleId"
+        LEFT JOIN trips t
+            ON t.id = e."tripId"
+        ORDER BY e.date ASC, e.id ASC
+    `;
+
+    const processedEntries = [];
+
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+
+        const previousEntry = await db`
+            SELECT odometer
             FROM entries
-            INNER JOIN vehicles
-                ON vehicles.id = entries.vehicleId
-            ORDER BY entries.id ASC
-        `)
-        .all();
+            WHERE "vehicleId" = ${entry.vehicleId}
+              AND (
+                    date < ${entry.date}
+                    OR (
+                        date = ${entry.date}
+                        AND id < ${entry.id}
+                    )
+              )
+            ORDER BY date DESC, id DESC
+            LIMIT 1
+        `;
 
-    const calculatedEntries =
-        calculateEntryMetrics(entries);
+        let distance = null;
+        let mileage = null;
 
-    const totalSpending =
-        calculatedEntries.reduce(
-            (total, entry) =>
-                total +
-                Number(entry.totalPrice),
-            0
-        );
+        if (previousEntry.length > 0) {
+            distance =
+                Number(entry.odometer) -
+                Number(previousEntry[0].odometer);
 
-    const totalFuel =
-        calculatedEntries.reduce(
-            (total, entry) =>
-                total +
-                Number(entry.litres),
-            0
-        );
+            if (distance > 0 && Number(entry.litres) > 0) {
+                mileage = distance / Number(entry.litres);
+            }
+        }
 
-    const mileageValues =
-        calculatedEntries
-            .filter(
-                (entry) =>
-                    entry.mileage !== null
-            )
-            .map(
-                (entry) =>
-                    Number(entry.mileage)
-            );
+        processedEntries.push({
+            ...entry,
+            distance,
+            mileage
+        });
+    }
+
+    const summaryRows = await db`
+        SELECT
+            COUNT(*) AS "totalEntries",
+            COALESCE(SUM("totalPrice"), 0) AS "totalSpending",
+            COALESCE(SUM(litres), 0) AS "totalFuel"
+        FROM entries
+    `;
+
+    const mileageValues = processedEntries
+        .map((entry) => entry.mileage)
+        .filter((value) => value !== null && Number.isFinite(value));
 
     const averageMileage =
         mileageValues.length > 0
-            ? Number(
-                  (
-                      mileageValues.reduce(
-                          (total, value) =>
-                              total + value,
-                          0
-                      ) /
-                      mileageValues.length
-                  ).toFixed(2)
-              )
-            : null;
-
-    const summary = {
-        totalEntries:
-            calculatedEntries.length,
-        totalSpending: Number(
-            totalSpending.toFixed(2)
-        ),
-        totalFuel: Number(
-            totalFuel.toFixed(2)
-        ),
-        averageMileage
-    };
+            ? mileageValues.reduce((sum, value) => sum + value, 0) /
+              mileageValues.length
+            : 0;
 
     return {
-        entries: calculatedEntries,
-        summary
+        entries: processedEntries,
+        summary: {
+            totalEntries: Number(summaryRows[0].totalEntries),
+            totalSpending: Number(summaryRows[0].totalSpending),
+            totalFuel: Number(summaryRows[0].totalFuel),
+            averageMileage
+        }
     };
 }
 
-function getEntryById(id) {
-    const entry = db
-        .prepare(`
-            SELECT
-                entries.id,
-                entries.vehicleId,
-                vehicles.name AS vehicleName,
-                vehicles.registration AS vehicleRegistration,
-                entries.date,
-                entries.pumpName,
-                entries.price,
-                entries.totalPrice,
-                entries.odometer,
-                entries.litres,
-                entries.tripId
-            FROM entries
-            INNER JOIN vehicles
-                ON vehicles.id = entries.vehicleId
-            WHERE entries.id = ?
-        `)
-        .get(id);
+async function getEntryById(id) {
+    const rows = await db`
+        SELECT
+            e.id,
+            e."vehicleId",
+            v.name AS "vehicleName",
+            v.registration AS "vehicleRegistration",
+            e.date,
+            e."pumpName",
+            e.price,
+            e."totalPrice",
+            e.odometer,
+            e.litres,
+            e."tripId",
+            t.name AS "tripName"
+        FROM entries e
+        JOIN vehicles v
+            ON v.id = e."vehicleId"
+        LEFT JOIN trips t
+            ON t.id = e."tripId"
+        WHERE e.id = ${Number(id)}
+    `;
 
-    if (!entry) {
+    if (rows.length === 0) {
         return null;
     }
 
-    const previousEntry =
-        getPreviousEntry(
-            entry.vehicleId,
-            entry.id
-        );
+    const entry = rows[0];
+
+    const previousEntry = await db`
+        SELECT odometer
+        FROM entries
+        WHERE "vehicleId" = ${entry.vehicleId}
+          AND (
+                date < ${entry.date}
+                OR (
+                    date = ${entry.date}
+                    AND id < ${entry.id}
+                )
+              )
+        ORDER BY date DESC, id DESC
+        LIMIT 1
+    `;
 
     let distance = null;
+    let mileage = null;
 
-    if (previousEntry) {
+    if (previousEntry.length > 0) {
         distance =
             Number(entry.odometer) -
-            Number(previousEntry.odometer);
+            Number(previousEntry[0].odometer);
 
-        if (distance <= 0) {
-            distance = null;
+        if (distance > 0 && Number(entry.litres) > 0) {
+            mileage = distance / Number(entry.litres);
         }
     }
 
     return {
         ...entry,
         distance,
-        mileage: calculateMileage(
-            distance,
-            Number(entry.litres)
-        )
+        mileage
     };
 }
 
-function deleteEntry(id) {
-    return db
-        .prepare(
-            "DELETE FROM entries WHERE id = ?"
-        )
-        .run(id);
+async function updateEntry(id, data) {
+    validateEntryData(data);
+
+    const {
+        date,
+        vehicleId,
+        pumpName,
+        price,
+        litres,
+        odometer,
+        tripId
+    } = data;
+
+    const numericPrice = Number(price);
+    const numericLitres = Number(litres);
+    const numericOdometer = Number(odometer);
+
+    const totalPrice = numericPrice * numericLitres;
+
+    const previousEntry = await getPreviousEntry(
+        Number(vehicleId),
+        Number(id)
+    );
+
+    let distance = null;
+    let mileage = null;
+
+    if (previousEntry) {
+        distance =
+            numericOdometer -
+            Number(previousEntry.odometer);
+
+        if (distance < 0) {
+            throw new Error(
+                "Odometer reading cannot be lower than the previous reading"
+            );
+        }
+
+        if (distance > 0 && numericLitres > 0) {
+            mileage = distance / numericLitres;
+        }
+    }
+
+    const rows = await db`
+        UPDATE entries
+        SET
+            "vehicleId" = ${Number(vehicleId)},
+            date = ${date},
+            "pumpName" = ${pumpName.trim()},
+            price = ${numericPrice},
+            "totalPrice" = ${totalPrice},
+            odometer = ${numericOdometer},
+            litres = ${numericLitres},
+            "tripId" = ${
+                tripId === undefined ||
+                tripId === null ||
+                tripId === ""
+                    ? null
+                    : Number(tripId)
+            }
+        WHERE id = ${Number(id)}
+        RETURNING *
+    `;
+
+    if (rows.length === 0) {
+        return null;
+    }
+
+    return {
+        ...rows[0],
+        distance,
+        mileage
+    };
+}
+
+async function deleteEntry(id) {
+    const rows = await db`
+        DELETE FROM entries
+        WHERE id = ${Number(id)}
+        RETURNING id
+    `;
+
+    return rows.length > 0;
 }
 
 module.exports = {
     createEntry,
     getAllEntries,
     getEntryById,
+    updateEntry,
     deleteEntry
 };

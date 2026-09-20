@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 
@@ -7,6 +9,7 @@ const {
     createEntry,
     getAllEntries,
     getEntryById,
+    updateEntry,
     deleteEntry
 } = require("./entryService");
 
@@ -31,20 +34,18 @@ app.get("/", (req, res) => {
    VEHICLES
 ========================= */
 
-app.get("/vehicles", (req, res) => {
+app.get("/vehicles", async (req, res) => {
     try {
-        const vehicles = db
-            .prepare(`
-                SELECT
-                    id,
-                    name,
-                    registration,
-                    active,
-                    createdAt
-                FROM vehicles
-                ORDER BY id ASC
-            `)
-            .all();
+        const vehicles = await db`
+            SELECT
+                id,
+                name,
+                registration,
+                active,
+                "createdAt"
+            FROM vehicles
+            ORDER BY id ASC
+        `;
 
         res.json(vehicles);
     } catch (error) {
@@ -56,36 +57,32 @@ app.get("/vehicles", (req, res) => {
     }
 });
 
-app.get("/vehicle-summaries", (req, res) => {
+app.get("/vehicle-summaries", async (req, res) => {
     try {
-        const vehicles = db
-            .prepare(`
-                SELECT
-                    id,
-                    name,
-                    registration,
-                    active,
-                    createdAt
-                FROM vehicles
-                ORDER BY id ASC
-            `)
-            .all();
+        const vehicles = await db`
+            SELECT
+                id,
+                name,
+                registration,
+                active,
+                "createdAt"
+            FROM vehicles
+            ORDER BY id ASC
+        `;
 
-        const entriesData = getAllEntries();
+        const entriesData = await getAllEntries();
         const entries = entriesData.entries || [];
 
-        const maintenanceRecords = db
-            .prepare(`
-                SELECT
-                    id,
-                    vehicleId,
-                    mobileOilCost,
-                    oilFilterCost,
-                    airFilterCost,
-                    otherMaintenanceCost
-                FROM vehicle_maintenance
-            `)
-            .all();
+        const maintenanceRecords = await db`
+            SELECT
+                id,
+                "vehicleId",
+                "mobileOilCost",
+                "oilFilterCost",
+                "airFilterCost",
+                "otherMaintenanceCost"
+            FROM vehicle_maintenance
+        `;
 
         const summaries = vehicles.map((vehicle) => {
             const vehicleEntries = entries
@@ -96,8 +93,7 @@ app.get("/vehicle-summaries", (req, res) => {
                 )
                 .sort(
                     (a, b) =>
-                        Number(a.id) -
-                        Number(b.id)
+                        Number(a.id) - Number(b.id)
                 );
 
             const vehicleMaintenance =
@@ -111,9 +107,7 @@ app.get("/vehicle-summaries", (req, res) => {
                 vehicleEntries.reduce(
                     (total, entry) =>
                         total +
-                        Number(
-                            entry.totalPrice || 0
-                        ),
+                        Number(entry.totalPrice || 0),
                     0
                 );
 
@@ -121,9 +115,7 @@ app.get("/vehicle-summaries", (req, res) => {
                 vehicleEntries.reduce(
                     (total, entry) =>
                         total +
-                        Number(
-                            entry.litres || 0
-                        ),
+                        Number(entry.litres || 0),
                     0
                 );
 
@@ -136,15 +128,12 @@ app.get("/vehicle-summaries", (req, res) => {
             ) {
                 const previousOdometer =
                     Number(
-                        vehicleEntries[
-                            index - 1
-                        ].odometer
+                        vehicleEntries[index - 1].odometer
                     );
 
                 const currentOdometer =
                     Number(
-                        vehicleEntries[index]
-                            .odometer
+                        vehicleEntries[index].odometer
                     );
 
                 const distance =
@@ -171,15 +160,10 @@ app.get("/vehicle-summaries", (req, res) => {
             const averageMileage =
                 mileageValues.length > 0
                     ? mileageValues.reduce(
-                          (
-                              total,
-                              mileage
-                          ) =>
-                              total +
-                              mileage,
+                          (total, mileage) =>
+                              total + mileage,
                           0
-                      ) /
-                      mileageValues.length
+                      ) / mileageValues.length
                     : null;
 
             const maintenanceCost =
@@ -187,16 +171,13 @@ app.get("/vehicle-summaries", (req, res) => {
                     (total, record) =>
                         total +
                         Number(
-                            record.mobileOilCost ||
-                                0
+                            record.mobileOilCost || 0
                         ) +
                         Number(
-                            record.oilFilterCost ||
-                                0
+                            record.oilFilterCost || 0
                         ) +
                         Number(
-                            record.airFilterCost ||
-                                0
+                            record.airFilterCost || 0
                         ) +
                         Number(
                             record.otherMaintenanceCost ||
@@ -210,9 +191,7 @@ app.get("/vehicle-summaries", (req, res) => {
                     ? Math.max(
                           ...vehicleEntries.map(
                               (entry) =>
-                                  Number(
-                                      entry.odometer
-                                  )
+                                  Number(entry.odometer)
                           )
                       )
                     : null;
@@ -220,11 +199,9 @@ app.get("/vehicle-summaries", (req, res) => {
             return {
                 id: vehicle.id,
                 name: vehicle.name,
-                registration:
-                    vehicle.registration,
+                registration: vehicle.registration,
                 active: vehicle.active,
-                createdAt:
-                    vehicle.createdAt,
+                createdAt: vehicle.createdAt,
 
                 currentOdometer,
 
@@ -246,9 +223,7 @@ app.get("/vehicle-summaries", (req, res) => {
                 averageMileage:
                     averageMileage !== null
                         ? Number(
-                              averageMileage.toFixed(
-                                  2
-                              )
+                              averageMileage.toFixed(2)
                           )
                         : null,
 
@@ -279,7 +254,7 @@ app.get("/vehicle-summaries", (req, res) => {
     }
 });
 
-app.post("/vehicles", (req, res) => {
+app.post("/vehicles", async (req, res) => {
     try {
         const name =
             typeof req.body.name === "string"
@@ -297,33 +272,24 @@ app.post("/vehicles", (req, res) => {
             });
         }
 
-        const result = db
-            .prepare(`
-                INSERT INTO vehicles (
-                    name,
-                    registration
-                )
-                VALUES (?, ?)
-            `)
-            .run(
+        const rows = await db`
+            INSERT INTO vehicles (
                 name,
-                registration || null
-            );
+                registration
+            )
+            VALUES (
+                ${name},
+                ${registration || null}
+            )
+            RETURNING
+                id,
+                name,
+                registration,
+                active,
+                "createdAt"
+        `;
 
-        const vehicle = db
-            .prepare(`
-                SELECT
-                    id,
-                    name,
-                    registration,
-                    active,
-                    createdAt
-                FROM vehicles
-                WHERE id = ?
-            `)
-            .get(result.lastInsertRowid);
-
-        res.status(201).json(vehicle);
+        res.status(201).json(rows[0]);
     } catch (error) {
         console.error(
             "Failed to create vehicle:",
@@ -336,7 +302,7 @@ app.post("/vehicles", (req, res) => {
     }
 });
 
-app.put("/vehicles/:id", (req, res) => {
+app.put("/vehicles/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
@@ -362,40 +328,29 @@ app.put("/vehicles/:id", (req, res) => {
             });
         }
 
-        const result = db
-            .prepare(`
-                UPDATE vehicles
-                SET
-                    name = ?,
-                    registration = ?
-                WHERE id = ?
-            `)
-            .run(
+        const rows = await db`
+            UPDATE vehicles
+            SET
+                name = ${name},
+                registration = ${
+                    registration || null
+                }
+            WHERE id = ${id}
+            RETURNING
+                id,
                 name,
-                registration || null,
-                id
-            );
+                registration,
+                active,
+                "createdAt"
+        `;
 
-        if (result.changes === 0) {
+        if (rows.length === 0) {
             return res.status(404).json({
                 error: "Vehicle not found"
             });
         }
 
-        const vehicle = db
-            .prepare(`
-                SELECT
-                    id,
-                    name,
-                    registration,
-                    active,
-                    createdAt
-                FROM vehicles
-                WHERE id = ?
-            `)
-            .get(id);
-
-        res.json(vehicle);
+        res.json(rows[0]);
     } catch (error) {
         console.error(
             "Failed to update vehicle:",
@@ -408,7 +363,7 @@ app.put("/vehicles/:id", (req, res) => {
     }
 });
 
-app.delete("/vehicles/:id", (req, res) => {
+app.delete("/vehicles/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
@@ -418,15 +373,14 @@ app.delete("/vehicles/:id", (req, res) => {
             });
         }
 
-        const result = db
-            .prepare(`
-                UPDATE vehicles
-                SET active = 0
-                WHERE id = ?
-            `)
-            .run(id);
+        const rows = await db`
+            UPDATE vehicles
+            SET active = 0
+            WHERE id = ${id}
+            RETURNING id
+        `;
 
-        if (result.changes === 0) {
+        if (rows.length === 0) {
             return res.status(404).json({
                 error: "Vehicle not found"
             });
@@ -453,10 +407,10 @@ app.delete("/vehicles/:id", (req, res) => {
    FUEL ENTRIES
 ========================= */
 
-app.post("/entries", (req, res) => {
+app.post("/entries", async (req, res) => {
     try {
         const savedEntry =
-            createEntry(req.body);
+            await createEntry(req.body);
 
         res.status(201).json(savedEntry);
     } catch (error) {
@@ -471,9 +425,10 @@ app.post("/entries", (req, res) => {
     }
 });
 
-app.get("/entries", (req, res) => {
+app.get("/entries", async (req, res) => {
     try {
-        const data = getAllEntries();
+        const data =
+            await getAllEntries();
 
         res.json(data);
     } catch (error) {
@@ -488,7 +443,7 @@ app.get("/entries", (req, res) => {
     }
 });
 
-app.get("/entries/:id", (req, res) => {
+app.get("/entries/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
@@ -498,7 +453,8 @@ app.get("/entries/:id", (req, res) => {
             });
         }
 
-        const entry = getEntryById(id);
+        const entry =
+            await getEntryById(id);
 
         if (!entry) {
             return res.status(404).json({
@@ -519,7 +475,7 @@ app.get("/entries/:id", (req, res) => {
     }
 });
 
-app.delete("/entries/:id", (req, res) => {
+app.put("/entries/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
@@ -529,9 +485,45 @@ app.delete("/entries/:id", (req, res) => {
             });
         }
 
-        const result = deleteEntry(id);
+        const updatedEntry =
+            await updateEntry(
+                id,
+                req.body
+            );
 
-        if (result.changes === 0) {
+        if (!updatedEntry) {
+            return res.status(404).json({
+                error: "Entry not found"
+            });
+        }
+
+        res.json(updatedEntry);
+    } catch (error) {
+        console.error(
+            "Failed to update entry:",
+            error
+        );
+
+        res.status(400).json({
+            error: error.message
+        });
+    }
+});
+
+app.delete("/entries/:id", async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({
+                error: "Invalid entry ID"
+            });
+        }
+
+        const deleted =
+            await deleteEntry(id);
+
+        if (!deleted) {
             return res.status(404).json({
                 error: "Entry not found"
             });
@@ -558,108 +550,105 @@ app.delete("/entries/:id", (req, res) => {
    TRIPS
 ========================= */
 
-app.get("/trips", (req, res) => {
+app.get("/trips", async (req, res) => {
     try {
-        const trips = db
-            .prepare(`
+        const trips = await db`
+            SELECT
+                trips.id,
+                trips."vehicleId",
+                vehicles.name AS "vehicleName",
+                vehicles.registration AS
+                    "vehicleRegistration",
+                trips.name,
+                trips."startLocation",
+                trips.destination,
+                trips."startDate",
+                trips."endDate",
+                trips."startOdometer",
+                trips."endOdometer"
+            FROM trips
+            INNER JOIN vehicles
+                ON vehicles.id =
+                   trips."vehicleId"
+            ORDER BY trips.id DESC
+        `;
+
+        const enrichedTrips = [];
+
+        for (const trip of trips) {
+            const fuel = await db`
                 SELECT
-                    trips.id,
-                    trips.vehicleId,
-                    vehicles.name AS vehicleName,
-                    vehicles.registration
-                        AS vehicleRegistration,
-                    trips.name,
-                    trips.startLocation,
-                    trips.destination,
-                    trips.startDate,
-                    trips.endDate,
-                    trips.startOdometer,
-                    trips.endOdometer
-                FROM trips
-                INNER JOIN vehicles
-                    ON vehicles.id =
-                       trips.vehicleId
-                ORDER BY trips.id DESC
-            `)
-            .all();
+                    COALESCE(
+                        SUM(litres),
+                        0
+                    ) AS "totalFuel",
 
-        const enrichedTrips =
-            trips.map((trip) => {
-                const fuel = db
-                    .prepare(`
-                        SELECT
-                            COALESCE(
-                                SUM(litres),
-                                0
-                            ) AS totalFuel,
+                    COALESCE(
+                        SUM("totalPrice"),
+                        0
+                    ) AS "totalCost",
 
-                            COALESCE(
-                                SUM(totalPrice),
-                                0
-                            ) AS totalCost,
+                    COUNT(*) AS "fuelEntries"
 
-                            COUNT(*) AS fuelEntries
+                FROM entries
 
-                        FROM entries
+                WHERE "tripId" = ${trip.id}
+            `;
 
-                        WHERE tripId = ?
-                    `)
-                    .get(trip.id);
+            const fuelData = fuel[0];
 
-                let distance = null;
+            let distance = null;
 
-                if (
-                    trip.endOdometer !== null &&
-                    trip.endOdometer !== undefined
-                ) {
-                    distance =
+            if (
+                trip.endOdometer !== null &&
+                trip.endOdometer !== undefined
+            ) {
+                distance =
+                    Number(trip.endOdometer) -
+                    Number(trip.startOdometer);
+            }
+
+            const mileage =
+                distance !== null &&
+                distance > 0 &&
+                Number(fuelData.totalFuel) > 0
+                    ? Number(
+                          (
+                              distance /
+                              Number(
+                                  fuelData.totalFuel
+                              )
+                          ).toFixed(2)
+                      )
+                    : null;
+
+            enrichedTrips.push({
+                ...trip,
+
+                distance,
+
+                totalFuel:
+                    Number(
                         Number(
-                            trip.endOdometer
-                        ) -
+                            fuelData.totalFuel
+                        ).toFixed(2)
+                    ),
+
+                totalCost:
+                    Number(
                         Number(
-                            trip.startOdometer
-                        );
-                }
+                            fuelData.totalCost
+                        ).toFixed(2)
+                    ),
 
-                const mileage =
-                    distance !== null &&
-                    distance > 0 &&
-                    Number(fuel.totalFuel) > 0
-                        ? Number(
-                              (
-                                  distance /
-                                  Number(
-                                      fuel.totalFuel
-                                  )
-                              ).toFixed(2)
-                          )
-                        : null;
+                fuelEntries:
+                    Number(
+                        fuelData.fuelEntries
+                    ),
 
-                return {
-                    ...trip,
-
-                    distance,
-
-                    totalFuel:
-                        Number(
-                            Number(
-                                fuel.totalFuel
-                            ).toFixed(2)
-                        ),
-
-                    totalCost:
-                        Number(
-                            Number(
-                                fuel.totalCost
-                            ).toFixed(2)
-                        ),
-
-                    fuelEntries:
-                        fuel.fuelEntries,
-
-                    mileage
-                };
+                mileage
             });
+        }
 
         res.json(enrichedTrips);
     } catch (error) {
@@ -674,7 +663,7 @@ app.get("/trips", (req, res) => {
     }
 });
 
-app.get("/trips/:id", (req, res) => {
+app.get("/trips/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
@@ -684,52 +673,51 @@ app.get("/trips/:id", (req, res) => {
             });
         }
 
-        const trip = db
-            .prepare(`
-                SELECT
-                    trips.id,
-                    trips.vehicleId,
-                    vehicles.name AS vehicleName,
-                    vehicles.registration
-                        AS vehicleRegistration,
-                    trips.name,
-                    trips.startLocation,
-                    trips.destination,
-                    trips.startDate,
-                    trips.endDate,
-                    trips.startOdometer,
-                    trips.endOdometer
-                FROM trips
-                INNER JOIN vehicles
-                    ON vehicles.id =
-                       trips.vehicleId
-                WHERE trips.id = ?
-            `)
-            .get(id);
+        const tripRows = await db`
+            SELECT
+                trips.id,
+                trips."vehicleId",
+                vehicles.name AS "vehicleName",
+                vehicles.registration AS
+                    "vehicleRegistration",
+                trips.name,
+                trips."startLocation",
+                trips.destination,
+                trips."startDate",
+                trips."endDate",
+                trips."startOdometer",
+                trips."endOdometer"
+            FROM trips
+            INNER JOIN vehicles
+                ON vehicles.id =
+                   trips."vehicleId"
+            WHERE trips.id = ${id}
+        `;
 
-        if (!trip) {
+        if (tripRows.length === 0) {
             return res.status(404).json({
                 error: "Trip not found"
             });
         }
 
-        const fuelEntries = db
-            .prepare(`
+        const trip = tripRows[0];
+
+        const fuelEntries =
+            await db`
                 SELECT
                     id,
-                    vehicleId,
+                    "vehicleId",
                     date,
-                    pumpName,
+                    "pumpName",
                     price,
-                    totalPrice,
+                    "totalPrice",
                     odometer,
                     litres,
-                    tripId
+                    "tripId"
                 FROM entries
-                WHERE tripId = ?
+                WHERE "tripId" = ${id}
                 ORDER BY id ASC
-            `)
-            .all(id);
+            `;
 
         const totalFuel =
             fuelEntries.reduce(
@@ -754,12 +742,8 @@ app.get("/trips/:id", (req, res) => {
             trip.endOdometer !== undefined
         ) {
             distance =
-                Number(
-                    trip.endOdometer
-                ) -
-                Number(
-                    trip.startOdometer
-                );
+                Number(trip.endOdometer) -
+                Number(trip.startOdometer);
         }
 
         const mileage =
@@ -805,7 +789,7 @@ app.get("/trips/:id", (req, res) => {
     }
 });
 
-app.post("/trips", (req, res) => {
+app.post("/trips", async (req, res) => {
     try {
         const vehicleId =
             Number(req.body.vehicleId);
@@ -816,26 +800,22 @@ app.post("/trips", (req, res) => {
                 : "";
 
         const startLocation =
-            typeof req.body.startLocation ===
-            "string"
+            typeof req.body.startLocation === "string"
                 ? req.body.startLocation.trim()
                 : "";
 
         const destination =
-            typeof req.body.destination ===
-            "string"
+            typeof req.body.destination === "string"
                 ? req.body.destination.trim()
                 : "";
 
         const startDate =
-            typeof req.body.startDate ===
-            "string"
+            typeof req.body.startDate === "string"
                 ? req.body.startDate
                 : "";
 
         const endDate =
-            typeof req.body.endDate ===
-                "string" &&
+            typeof req.body.endDate === "string" &&
             req.body.endDate.trim() !== ""
                 ? req.body.endDate
                 : null;
@@ -848,9 +828,7 @@ app.post("/trips", (req, res) => {
             req.body.endOdometer === undefined ||
             req.body.endOdometer === ""
                 ? null
-                : Number(
-                      req.body.endOdometer
-                  );
+                : Number(req.body.endOdometer);
 
         if (
             !Number.isInteger(vehicleId) ||
@@ -901,14 +879,13 @@ app.post("/trips", (req, res) => {
             )
         ) {
             return res.status(400).json({
-                error: "Invalid end date"
+                error:
+                    "Invalid end date"
             });
         }
 
         if (
-            !Number.isFinite(
-                startOdometer
-            ) ||
+            !Number.isFinite(startOdometer) ||
             startOdometer < 0
         ) {
             return res.status(400).json({
@@ -919,11 +896,10 @@ app.post("/trips", (req, res) => {
 
         if (
             endOdometer !== null &&
-            (!Number.isFinite(
-                endOdometer
-            ) ||
-                endOdometer <
-                    startOdometer)
+            (
+                !Number.isFinite(endOdometer) ||
+                endOdometer < startOdometer
+            )
         ) {
             return res.status(400).json({
                 error:
@@ -931,55 +907,44 @@ app.post("/trips", (req, res) => {
             });
         }
 
-        const vehicle = db
-            .prepare(`
-                SELECT id
-                FROM vehicles
-                WHERE id = ?
-                  AND active = 1
-            `)
-            .get(vehicleId);
+        const vehicleRows = await db`
+            SELECT id
+            FROM vehicles
+            WHERE id = ${vehicleId}
+              AND active = 1
+        `;
 
-        if (!vehicle) {
+        if (vehicleRows.length === 0) {
             return res.status(404).json({
                 error: "Vehicle not found"
             });
         }
 
-        const result = db
-            .prepare(`
-                INSERT INTO trips (
-                    vehicleId,
-                    name,
-                    startLocation,
-                    destination,
-                    startDate,
-                    endDate,
-                    startOdometer,
-                    endOdometer
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `)
-            .run(
-                vehicleId,
+        const rows = await db`
+            INSERT INTO trips (
+                "vehicleId",
                 name,
-                startLocation,
+                "startLocation",
                 destination,
-                startDate,
-                endDate,
-                startOdometer,
-                endOdometer
-            );
+                "startDate",
+                "endDate",
+                "startOdometer",
+                "endOdometer"
+            )
+            VALUES (
+                ${vehicleId},
+                ${name},
+                ${startLocation},
+                ${destination},
+                ${startDate},
+                ${endDate},
+                ${startOdometer},
+                ${endOdometer}
+            )
+            RETURNING *
+        `;
 
-        const trip = db
-            .prepare(`
-                SELECT *
-                FROM trips
-                WHERE id = ?
-            `)
-            .get(result.lastInsertRowid);
-
-        res.status(201).json(trip);
+        res.status(201).json(rows[0]);
     } catch (error) {
         console.error(
             "Failed to create trip:",
@@ -992,50 +957,42 @@ app.post("/trips", (req, res) => {
     }
 });
 
-app.put("/trips/:id", (req, res) => {
+app.put("/trips/:id", async (req, res) => {
     try {
-        const id =
-            Number(req.params.id);
+        const id = Number(req.params.id);
 
         const endDate =
-            typeof req.body.endDate ===
-                "string" &&
+            typeof req.body.endDate === "string" &&
             req.body.endDate.trim() !== ""
                 ? req.body.endDate
                 : null;
 
         const endOdometer =
             req.body.endOdometer === null ||
-            req.body.endOdometer ===
-                undefined ||
+            req.body.endOdometer === undefined ||
             req.body.endOdometer === ""
                 ? null
-                : Number(
-                      req.body.endOdometer
-                  );
+                : Number(req.body.endOdometer);
 
-        if (
-            !Number.isInteger(id) ||
-            id <= 0
-        ) {
+        if (!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({
                 error: "Invalid trip ID"
             });
         }
 
-        const trip = db
-            .prepare(`
-                SELECT startOdometer
-                FROM trips
-                WHERE id = ?
-            `)
-            .get(id);
+        const tripRows = await db`
+            SELECT "startOdometer"
+            FROM trips
+            WHERE id = ${id}
+        `;
 
-        if (!trip) {
+        if (tripRows.length === 0) {
             return res.status(404).json({
                 error: "Trip not found"
             });
         }
+
+        const trip = tripRows[0];
 
         if (
             endDate !== null &&
@@ -1050,13 +1007,11 @@ app.put("/trips/:id", (req, res) => {
 
         if (
             endOdometer !== null &&
-            (!Number.isFinite(
-                endOdometer
-            ) ||
+            (
+                !Number.isFinite(endOdometer) ||
                 endOdometer <
-                    Number(
-                        trip.startOdometer
-                    ))
+                    Number(trip.startOdometer)
+            )
         ) {
             return res.status(400).json({
                 error:
@@ -1064,27 +1019,16 @@ app.put("/trips/:id", (req, res) => {
             });
         }
 
-        db.prepare(`
+        const rows = await db`
             UPDATE trips
             SET
-                endDate = ?,
-                endOdometer = ?
-            WHERE id = ?
-        `).run(
-            endDate,
-            endOdometer,
-            id
-        );
+                "endDate" = ${endDate},
+                "endOdometer" = ${endOdometer}
+            WHERE id = ${id}
+            RETURNING *
+        `;
 
-        const updatedTrip = db
-            .prepare(`
-                SELECT *
-                FROM trips
-                WHERE id = ?
-            `)
-            .get(id);
-
-        res.json(updatedTrip);
+        res.json(rows[0]);
     } catch (error) {
         console.error(
             "Failed to update trip:",
@@ -1097,27 +1041,23 @@ app.put("/trips/:id", (req, res) => {
     }
 });
 
-app.delete("/trips/:id", (req, res) => {
+app.delete("/trips/:id", async (req, res) => {
     try {
-        const id =
-            Number(req.params.id);
+        const id = Number(req.params.id);
 
-        if (
-            !Number.isInteger(id) ||
-            id <= 0
-        ) {
+        if (!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({
                 error: "Invalid trip ID"
             });
         }
 
-        const result = db
-            .prepare(
-                "DELETE FROM trips WHERE id = ?"
-            )
-            .run(id);
+        const rows = await db`
+            DELETE FROM trips
+            WHERE id = ${id}
+            RETURNING id
+        `;
 
-        if (result.changes === 0) {
+        if (rows.length === 0) {
             return res.status(404).json({
                 error: "Trip not found"
             });
@@ -1144,172 +1084,171 @@ app.delete("/trips/:id", (req, res) => {
    VEHICLE RECORDS
 ========================= */
 
-app.get("/vehicle-records", (req, res) => {
-    try {
-        const records = db
-            .prepare(`
+app.get(
+    "/vehicle-records",
+    async (req, res) => {
+        try {
+            const records = await db`
                 SELECT
                     vehicle_records.id,
-                    vehicle_records.vehicleId,
-                    vehicles.name AS vehicleName,
-                    vehicles.registration
-                        AS vehicleRegistration,
+                    vehicle_records."vehicleId",
+                    vehicles.name AS "vehicleName",
+                    vehicles.registration AS
+                        "vehicleRegistration",
                     vehicle_records.date,
                     vehicle_records.price,
-                    vehicle_records.meterReading
+                    vehicle_records."meterReading"
                 FROM vehicle_records
                 INNER JOIN vehicles
                     ON vehicles.id =
-                       vehicle_records.vehicleId
+                       vehicle_records."vehicleId"
                 ORDER BY
                     vehicle_records.date DESC,
                     vehicle_records.id DESC
-            `)
-            .all();
+            `;
 
-        res.json(records);
-    } catch (error) {
-        console.error(
-            "Failed to fetch vehicle records:",
-            error
-        );
-
-        res.status(500).json({
-            error:
-                "Failed to fetch vehicle records"
-        });
-    }
-});
-
-app.post("/vehicle-records", (req, res) => {
-    try {
-        const vehicleId =
-            Number(req.body.vehicleId);
-
-        const date =
-            typeof req.body.date === "string"
-                ? req.body.date
-                : "";
-
-        const price =
-            Number(req.body.price);
-
-        const meterReading =
-            Number(req.body.meterReading);
-
-        if (
-            !Number.isInteger(vehicleId) ||
-            vehicleId <= 0
-        ) {
-            return res.status(400).json({
-                error:
-                    "Valid vehicle is required"
-            });
-        }
-
-        if (
-            !/^\d{4}-\d{2}-\d{2}$/.test(
-                date
-            )
-        ) {
-            return res.status(400).json({
-                error:
-                    "Valid date is required"
-            });
-        }
-
-        if (
-            !Number.isFinite(price) ||
-            price < 0
-        ) {
-            return res.status(400).json({
-                error:
-                    "Price must be valid"
-            });
-        }
-
-        if (
-            !Number.isFinite(
-                meterReading
-            ) ||
-            meterReading < 0
-        ) {
-            return res.status(400).json({
-                error:
-                    "Meter reading must be valid"
-            });
-        }
-
-        const vehicle = db
-            .prepare(`
-                SELECT id
-                FROM vehicles
-                WHERE id = ?
-                  AND active = 1
-            `)
-            .get(vehicleId);
-
-        if (!vehicle) {
-            return res.status(404).json({
-                error: "Vehicle not found"
-            });
-        }
-
-        const result = db
-            .prepare(`
-                INSERT INTO vehicle_records (
-                    vehicleId,
-                    date,
-                    price,
-                    meterReading
-                )
-                VALUES (?, ?, ?, ?)
-            `)
-            .run(
-                vehicleId,
-                date,
-                price,
-                meterReading
+            res.json(records);
+        } catch (error) {
+            console.error(
+                "Failed to fetch vehicle records:",
+                error
             );
 
-        const record = db
-            .prepare(`
+            res.status(500).json({
+                error:
+                    "Failed to fetch vehicle records"
+            });
+        }
+    }
+);
+
+app.post(
+    "/vehicle-records",
+    async (req, res) => {
+        try {
+            const vehicleId =
+                Number(req.body.vehicleId);
+
+            const date =
+                typeof req.body.date === "string"
+                    ? req.body.date
+                    : "";
+
+            const price =
+                Number(req.body.price);
+
+            const meterReading =
+                Number(req.body.meterReading);
+
+            if (
+                !Number.isInteger(vehicleId) ||
+                vehicleId <= 0
+            ) {
+                return res.status(400).json({
+                    error:
+                        "Valid vehicle is required"
+                });
+            }
+
+            if (
+                !/^\d{4}-\d{2}-\d{2}$/.test(
+                    date
+                )
+            ) {
+                return res.status(400).json({
+                    error:
+                        "Valid date is required"
+                });
+            }
+
+            if (
+                !Number.isFinite(price) ||
+                price < 0
+            ) {
+                return res.status(400).json({
+                    error:
+                        "Price must be valid"
+                });
+            }
+
+            if (
+                !Number.isFinite(meterReading) ||
+                meterReading < 0
+            ) {
+                return res.status(400).json({
+                    error:
+                        "Meter reading must be valid"
+                });
+            }
+
+            const vehicleRows = await db`
+                SELECT id
+                FROM vehicles
+                WHERE id = ${vehicleId}
+                  AND active = 1
+            `;
+
+            if (vehicleRows.length === 0) {
+                return res.status(404).json({
+                    error:
+                        "Vehicle not found"
+                });
+            }
+
+            const rows = await db`
+                INSERT INTO vehicle_records (
+                    "vehicleId",
+                    date,
+                    price,
+                    "meterReading"
+                )
+                VALUES (
+                    ${vehicleId},
+                    ${date},
+                    ${price},
+                    ${meterReading}
+                )
+                RETURNING id
+            `;
+
+            const recordRows = await db`
                 SELECT
                     vehicle_records.id,
-                    vehicle_records.vehicleId,
-                    vehicles.name AS vehicleName,
-                    vehicles.registration
-                        AS vehicleRegistration,
+                    vehicle_records."vehicleId",
+                    vehicles.name AS "vehicleName",
+                    vehicles.registration AS
+                        "vehicleRegistration",
                     vehicle_records.date,
                     vehicle_records.price,
-                    vehicle_records.meterReading
+                    vehicle_records."meterReading"
                 FROM vehicle_records
                 INNER JOIN vehicles
                     ON vehicles.id =
-                       vehicle_records.vehicleId
-                WHERE vehicle_records.id = ?
-            `)
-            .get(
-                result.lastInsertRowid
+                       vehicle_records."vehicleId"
+                WHERE vehicle_records.id =
+                    ${rows[0].id}
+            `;
+
+            res.status(201).json(
+                recordRows[0]
+            );
+        } catch (error) {
+            console.error(
+                "Failed to create vehicle record:",
+                error
             );
 
-        res.status(201).json(record);
-    } catch (error) {
-        console.error(
-            "Failed to create vehicle record:",
-            error
-        );
-
-        res.status(500).json({
-            error:
-                "Failed to create vehicle record"
-        });
+            res.status(500).json({
+                error:
+                    "Failed to create vehicle record"
+            });
+        }
     }
-});
+);
 
 app.delete(
     "/vehicle-records/:id",
-    (req, res) => {
+    async (req, res) => {
         try {
             const id =
                 Number(req.params.id);
@@ -1324,13 +1263,13 @@ app.delete(
                 });
             }
 
-            const result = db
-                .prepare(
-                    "DELETE FROM vehicle_records WHERE id = ?"
-                )
-                .run(id);
+            const rows = await db`
+                DELETE FROM vehicle_records
+                WHERE id = ${id}
+                RETURNING id
+            `;
 
-            if (result.changes === 0) {
+            if (rows.length === 0) {
                 return res.status(404).json({
                     error:
                         "Vehicle record not found"
@@ -1361,59 +1300,54 @@ app.delete(
 
 app.get(
     "/vehicle-maintenance",
-    (req, res) => {
+    async (req, res) => {
         try {
-            const records = db
-                .prepare(`
-                    SELECT
-                        vehicle_maintenance.id,
-                        vehicle_maintenance.vehicleId,
-                        vehicles.name AS vehicleName,
-                        vehicles.registration
-                            AS vehicleRegistration,
-                        vehicle_maintenance.date,
-                        vehicle_maintenance.meterReading,
+            const records = await db`
+                SELECT
+                    vehicle_maintenance.id,
+                    vehicle_maintenance."vehicleId",
+                    vehicles.name AS "vehicleName",
+                    vehicles.registration AS
+                        "vehicleRegistration",
+                    vehicle_maintenance.date,
+                    vehicle_maintenance."meterReading",
 
-                        vehicle_maintenance.mobileOil,
-                        vehicle_maintenance.mobileOilCost,
+                    vehicle_maintenance."mobileOil",
+                    vehicle_maintenance."mobileOilCost",
 
-                        vehicle_maintenance.oilFilter,
-                        vehicle_maintenance.oilFilterCost,
+                    vehicle_maintenance."oilFilter",
+                    vehicle_maintenance."oilFilterCost",
 
-                        vehicle_maintenance.airFilter,
-                        vehicle_maintenance.airFilterCost,
+                    vehicle_maintenance."airFilter",
+                    vehicle_maintenance."airFilterCost",
 
-                        vehicle_maintenance.otherMaintenance,
-                        vehicle_maintenance.otherMaintenanceCost,
+                    vehicle_maintenance."otherMaintenance",
+                    vehicle_maintenance."otherMaintenanceCost",
 
-                        vehicle_maintenance.notes
+                    vehicle_maintenance.notes
 
-                    FROM vehicle_maintenance
+                FROM vehicle_maintenance
 
-                    INNER JOIN vehicles
-                        ON vehicles.id =
-                           vehicle_maintenance.vehicleId
+                INNER JOIN vehicles
+                    ON vehicles.id =
+                       vehicle_maintenance."vehicleId"
 
-                    ORDER BY
-                        vehicle_maintenance.date DESC,
-                        vehicle_maintenance.id DESC
-                `)
-                .all();
+                ORDER BY
+                    vehicle_maintenance.date DESC,
+                    vehicle_maintenance.id DESC
+            `;
 
             const enrichedRecords =
                 records.map((record) => {
                     const totalCost =
                         Number(
-                            record.mobileOilCost ||
-                                0
+                            record.mobileOilCost || 0
                         ) +
                         Number(
-                            record.oilFilterCost ||
-                                0
+                            record.oilFilterCost || 0
                         ) +
                         Number(
-                            record.airFilterCost ||
-                                0
+                            record.airFilterCost || 0
                         ) +
                         Number(
                             record.otherMaintenanceCost ||
@@ -1457,9 +1391,7 @@ app.get(
 
                         totalCost:
                             Number(
-                                totalCost.toFixed(
-                                    2
-                                )
+                                totalCost.toFixed(2)
                             )
                     };
                 });
@@ -1481,21 +1413,18 @@ app.get(
 
 app.post(
     "/vehicle-maintenance",
-    (req, res) => {
+    async (req, res) => {
         try {
             const vehicleId =
                 Number(req.body.vehicleId);
 
             const date =
-                typeof req.body.date ===
-                "string"
+                typeof req.body.date === "string"
                     ? req.body.date
                     : "";
 
             const meterReading =
-                Number(
-                    req.body.meterReading
-                );
+                Number(req.body.meterReading);
 
             const mobileOil =
                 typeof req.body.mobileOil ===
@@ -1504,10 +1433,8 @@ app.post(
                     : "";
 
             const mobileOilCost =
-                req.body.mobileOilCost ===
-                    "" ||
-                req.body.mobileOilCost ===
-                    null ||
+                req.body.mobileOilCost === "" ||
+                req.body.mobileOilCost === null ||
                 req.body.mobileOilCost ===
                     undefined
                     ? 0
@@ -1522,10 +1449,8 @@ app.post(
                     : "";
 
             const oilFilterCost =
-                req.body.oilFilterCost ===
-                    "" ||
-                req.body.oilFilterCost ===
-                    null ||
+                req.body.oilFilterCost === "" ||
+                req.body.oilFilterCost === null ||
                 req.body.oilFilterCost ===
                     undefined
                     ? 0
@@ -1540,10 +1465,8 @@ app.post(
                     : "";
 
             const airFilterCost =
-                req.body.airFilterCost ===
-                    "" ||
-                req.body.airFilterCost ===
-                    null ||
+                req.body.airFilterCost === "" ||
+                req.body.airFilterCost === null ||
                 req.body.airFilterCost ===
                     undefined
                     ? 0
@@ -1552,38 +1475,30 @@ app.post(
                       );
 
             const otherMaintenance =
-                typeof req.body
-                    .otherMaintenance ===
+                typeof req.body.otherMaintenance ===
                 "string"
                     ? req.body.otherMaintenance.trim()
                     : "";
 
             const otherMaintenanceCost =
-                req.body
-                    .otherMaintenanceCost ===
+                req.body.otherMaintenanceCost ===
                     "" ||
-                req.body
-                    .otherMaintenanceCost ===
+                req.body.otherMaintenanceCost ===
                     null ||
-                req.body
-                    .otherMaintenanceCost ===
+                req.body.otherMaintenanceCost ===
                     undefined
                     ? 0
                     : Number(
-                          req.body
-                              .otherMaintenanceCost
+                          req.body.otherMaintenanceCost
                       );
 
             const notes =
-                typeof req.body.notes ===
-                "string"
+                typeof req.body.notes === "string"
                     ? req.body.notes.trim()
                     : "";
 
             if (
-                !Number.isInteger(
-                    vehicleId
-                ) ||
+                !Number.isInteger(vehicleId) ||
                 vehicleId <= 0
             ) {
                 return res.status(400).json({
@@ -1604,9 +1519,7 @@ app.post(
             }
 
             if (
-                !Number.isFinite(
-                    meterReading
-                ) ||
+                !Number.isFinite(meterReading) ||
                 meterReading < 0
             ) {
                 return res.status(400).json({
@@ -1625,9 +1538,7 @@ app.post(
             if (
                 costs.some(
                     (cost) =>
-                        !Number.isFinite(
-                            cost
-                        ) ||
+                        !Number.isFinite(cost) ||
                         cost < 0
                 )
             ) {
@@ -1649,95 +1560,91 @@ app.post(
                 });
             }
 
-            const vehicle = db
-                .prepare(`
-                    SELECT
-                        id,
-                        name,
-                        registration
-                    FROM vehicles
-                    WHERE id = ?
-                      AND active = 1
-                `)
-                .get(vehicleId);
+            const vehicleRows = await db`
+                SELECT
+                    id,
+                    name,
+                    registration
+                FROM vehicles
+                WHERE id = ${vehicleId}
+                  AND active = 1
+            `;
 
-            if (!vehicle) {
+            if (vehicleRows.length === 0) {
                 return res.status(404).json({
                     error:
                         "Vehicle not found"
                 });
             }
 
-            const result = db
-                .prepare(`
-                    INSERT INTO vehicle_maintenance (
-                        vehicleId,
-                        date,
-                        meterReading,
-                        mobileOil,
-                        mobileOilCost,
-                        oilFilter,
-                        oilFilterCost,
-                        airFilter,
-                        airFilterCost,
-                        otherMaintenance,
-                        otherMaintenanceCost,
-                        notes
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `)
-                .run(
-                    vehicleId,
+            const rows = await db`
+                INSERT INTO vehicle_maintenance (
+                    "vehicleId",
                     date,
-                    meterReading,
-                    mobileOil || null,
-                    mobileOilCost,
-                    oilFilter || null,
-                    oilFilterCost,
-                    airFilter || null,
-                    airFilterCost,
-                    otherMaintenance ||
-                        null,
-                    otherMaintenanceCost,
-                    notes || null
-                );
+                    "meterReading",
+                    "mobileOil",
+                    "mobileOilCost",
+                    "oilFilter",
+                    "oilFilterCost",
+                    "airFilter",
+                    "airFilterCost",
+                    "otherMaintenance",
+                    "otherMaintenanceCost",
+                    notes
+                )
+                VALUES (
+                    ${vehicleId},
+                    ${date},
+                    ${meterReading},
+                    ${mobileOil || null},
+                    ${mobileOilCost},
+                    ${oilFilter || null},
+                    ${oilFilterCost},
+                    ${airFilter || null},
+                    ${airFilterCost},
+                    ${otherMaintenance || null},
+                    ${otherMaintenanceCost},
+                    ${notes || null}
+                )
+                RETURNING id
+            `;
 
-            const record = db
-                .prepare(`
-                    SELECT
-                        vehicle_maintenance.id,
-                        vehicle_maintenance.vehicleId,
-                        vehicles.name AS vehicleName,
-                        vehicles.registration
-                            AS vehicleRegistration,
-                        vehicle_maintenance.date,
-                        vehicle_maintenance.meterReading,
+            const recordRows = await db`
+                SELECT
+                    vehicle_maintenance.id,
+                    vehicle_maintenance."vehicleId",
+                    vehicles.name AS "vehicleName",
+                    vehicles.registration AS
+                        "vehicleRegistration",
+                    vehicle_maintenance.date,
+                    vehicle_maintenance."meterReading",
 
-                        vehicle_maintenance.mobileOil,
-                        vehicle_maintenance.mobileOilCost,
+                    vehicle_maintenance."mobileOil",
+                    vehicle_maintenance."mobileOilCost",
 
-                        vehicle_maintenance.oilFilter,
-                        vehicle_maintenance.oilFilterCost,
+                    vehicle_maintenance."oilFilter",
+                    vehicle_maintenance."oilFilterCost",
 
-                        vehicle_maintenance.airFilter,
-                        vehicle_maintenance.airFilterCost,
+                    vehicle_maintenance."airFilter",
+                    vehicle_maintenance."airFilterCost",
 
-                        vehicle_maintenance.otherMaintenance,
-                        vehicle_maintenance.otherMaintenanceCost,
+                    vehicle_maintenance."otherMaintenance",
+                    vehicle_maintenance."otherMaintenanceCost",
 
-                        vehicle_maintenance.notes
+                    vehicle_maintenance.notes
 
-                    FROM vehicle_maintenance
+                FROM vehicle_maintenance
 
-                    INNER JOIN vehicles
-                        ON vehicles.id =
-                           vehicle_maintenance.vehicleId
+                INNER JOIN vehicles
+                    ON vehicles.id =
+                       vehicle_maintenance."vehicleId"
 
-                    WHERE vehicle_maintenance.id = ?
-                `)
-                .get(
-                    result.lastInsertRowid
-                );
+                WHERE vehicle_maintenance.id =
+                    ${rows[0].id}
+            `;
+
+            const record =
+                recordRows[0];
 
             const totalCost =
                 Number(
@@ -1778,7 +1685,7 @@ app.post(
 
 app.delete(
     "/vehicle-maintenance/:id",
-    (req, res) => {
+    async (req, res) => {
         try {
             const id =
                 Number(req.params.id);
@@ -1793,14 +1700,13 @@ app.delete(
                 });
             }
 
-            const result = db
-                .prepare(`
-                    DELETE FROM vehicle_maintenance
-                    WHERE id = ?
-                `)
-                .run(id);
+            const rows = await db`
+                DELETE FROM vehicle_maintenance
+                WHERE id = ${id}
+                RETURNING id
+            `;
 
-            if (result.changes === 0) {
+            if (rows.length === 0) {
                 return res.status(404).json({
                     error:
                         "Maintenance record not found"
@@ -1840,7 +1746,8 @@ async function fetchCurrentFuelPrice() {
         );
     }
 
-    const data = await response.json();
+    const data =
+        await response.json();
 
     const petrol =
         data.products.find(
@@ -1870,24 +1777,23 @@ app.get(
             const fuelPrice =
                 await fetchCurrentFuelPrice();
 
-            db.prepare(`
+            await db`
                 INSERT INTO fuel_price_history (
                     price,
-                    effectiveDate
+                    "effectiveDate"
                 )
-                SELECT ?, ?
+                SELECT
+                    ${fuelPrice.price},
+                    ${fuelPrice.effectiveDate}
                 WHERE NOT EXISTS (
                     SELECT 1
                     FROM fuel_price_history
-                    WHERE price = ?
-                      AND effectiveDate = ?
+                    WHERE price =
+                        ${fuelPrice.price}
+                    AND "effectiveDate" =
+                        ${fuelPrice.effectiveDate}
                 )
-            `).run(
-                fuelPrice.price,
-                fuelPrice.effectiveDate,
-                fuelPrice.price,
-                fuelPrice.effectiveDate
-            );
+            `;
 
             res.json(fuelPrice);
         } catch (error) {
@@ -1906,21 +1812,19 @@ app.get(
 
 app.get(
     "/fuel-price/history",
-    (req, res) => {
+    async (req, res) => {
         try {
-            const history = db
-                .prepare(`
-                    SELECT
-                        id,
-                        price,
-                        effectiveDate,
-                        recordedAt
-                    FROM fuel_price_history
-                    ORDER BY
-                        effectiveDate ASC,
-                        id ASC
-                `)
-                .all();
+            const history = await db`
+                SELECT
+                    id,
+                    price,
+                    "effectiveDate",
+                    "recordedAt"
+                FROM fuel_price_history
+                ORDER BY
+                    "effectiveDate" ASC,
+                    id ASC
+            `;
 
             res.json(history);
         } catch (error) {
@@ -1945,114 +1849,105 @@ app.get(
     "/dashboard",
     async (req, res) => {
         try {
-            const totals = db
-                .prepare(`
+            const totalsRows = await db`
+                SELECT
+                    COUNT(*) AS "totalEntries",
+
+                    COALESCE(
+                        SUM("totalPrice"),
+                        0
+                    ) AS "totalSpending",
+
+                    COALESCE(
+                        SUM(litres),
+                        0
+                    ) AS "totalFuel"
+
+                FROM entries
+            `;
+
+            const totals =
+                totalsRows[0];
+
+            const activeVehiclesRows =
+                await db`
                     SELECT
-                        COUNT(*) AS totalEntries,
+                        COUNT(*) AS count
+                    FROM vehicles
+                    WHERE active = 1
+                `;
 
-                        COALESCE(
-                            SUM(totalPrice),
-                            0
-                        ) AS totalSpending,
+            const totalTripsRows =
+                await db`
+                    SELECT
+                        COUNT(*) AS count
+                    FROM trips
+                `;
 
-                        COALESCE(
-                            SUM(litres),
-                            0
-                        ) AS totalFuel
-
-                    FROM entries
-                `)
-                .get();
-
-            const activeVehicles =
-                db
-                    .prepare(`
-                        SELECT
-                            COUNT(*) AS count
-                        FROM vehicles
-                        WHERE active = 1
-                    `)
-                    .get();
-
-            const totalTrips =
-                db
-                    .prepare(`
-                        SELECT
-                            COUNT(*) AS count
-                        FROM trips
-                    `)
-                    .get();
-
-            const completedTrips =
-                db
-                    .prepare(`
-                        SELECT
-                            COUNT(*) AS count
-                        FROM trips
-                        WHERE endOdometer IS NOT NULL
-                    `)
-                    .get();
+            const completedTripsRows =
+                await db`
+                    SELECT
+                        COUNT(*) AS count
+                    FROM trips
+                    WHERE "endOdometer" IS NOT NULL
+                `;
 
             const mileageData =
-                getAllEntries();
+                await getAllEntries();
 
             const averageMileage =
                 mileageData.summary
                     .averageMileage;
 
             const recentEntries =
-                db
-                    .prepare(`
-                        SELECT
-                            entries.id,
-                            entries.date,
-                            entries.pumpName,
-                            entries.price,
-                            entries.totalPrice,
-                            entries.litres,
-                            entries.odometer,
-                            vehicles.id AS vehicleId,
-                            vehicles.name AS vehicleName,
-                            vehicles.registration
-                                AS vehicleRegistration,
-                            entries.tripId
-                        FROM entries
-                        INNER JOIN vehicles
-                            ON vehicles.id =
-                               entries.vehicleId
-                        ORDER BY
-                            entries.date DESC,
-                            entries.id DESC
-                        LIMIT 5
-                    `)
-                    .all();
+                await db`
+                    SELECT
+                        entries.id,
+                        entries.date,
+                        entries."pumpName",
+                        entries.price,
+                        entries."totalPrice",
+                        entries.litres,
+                        entries.odometer,
+                        vehicles.id AS "vehicleId",
+                        vehicles.name AS "vehicleName",
+                        vehicles.registration AS
+                            "vehicleRegistration",
+                        entries."tripId"
+                    FROM entries
+                    INNER JOIN vehicles
+                        ON vehicles.id =
+                           entries."vehicleId"
+                    ORDER BY
+                        entries.date DESC,
+                        entries.id DESC
+                    LIMIT 5
+                `;
 
             const recentTrips =
-                db
-                    .prepare(`
-                        SELECT
-                            trips.id,
-                            trips.name,
-                            trips.startLocation,
-                            trips.destination,
-                            trips.startDate,
-                            trips.endDate,
-                            trips.startOdometer,
-                            trips.endOdometer,
-                            vehicles.id AS vehicleId,
-                            vehicles.name AS vehicleName,
-                            vehicles.registration
-                                AS vehicleRegistration
-                        FROM trips
-                        INNER JOIN vehicles
-                            ON vehicles.id =
-                               trips.vehicleId
-                        ORDER BY
-                            trips.startDate DESC,
-                            trips.id DESC
-                        LIMIT 5
-                    `)
-                    .all();
+                await db`
+                    SELECT
+                        trips.id,
+                        trips.name,
+                        trips."startLocation",
+                        trips.destination,
+                        trips."startDate",
+                        trips."endDate",
+                        trips."startOdometer",
+                        trips."endOdometer",
+                        vehicles.id AS "vehicleId",
+                        vehicles.name AS "vehicleName",
+                        vehicles.registration AS
+                            "vehicleRegistration"
+                    FROM trips
+                    INNER JOIN vehicles
+                        ON vehicles.id =
+                           trips."vehicleId"
+                    ORDER BY
+                        trips."startDate" DESC,
+                        trips.id DESC
+                    LIMIT 5
+                `;
 
             let fuelPrice = null;
 
@@ -2060,45 +1955,47 @@ app.get(
                 fuelPrice =
                     await fetchCurrentFuelPrice();
 
-                db.prepare(`
+                await db`
                     INSERT INTO fuel_price_history (
                         price,
-                        effectiveDate
+                        "effectiveDate"
                     )
-                    SELECT ?, ?
+                    SELECT
+                        ${fuelPrice.price},
+                        ${fuelPrice.effectiveDate}
                     WHERE NOT EXISTS (
                         SELECT 1
                         FROM fuel_price_history
-                        WHERE price = ?
-                          AND effectiveDate = ?
+                        WHERE price =
+                            ${fuelPrice.price}
+                        AND "effectiveDate" =
+                            ${fuelPrice.effectiveDate}
                     )
-                `).run(
-                    fuelPrice.price,
-                    fuelPrice.effectiveDate,
-                    fuelPrice.price,
-                    fuelPrice.effectiveDate
-                );
+                `;
             } catch (fuelPriceError) {
                 console.error(
                     "Dashboard fuel price fetch failed:",
                     fuelPriceError
                 );
 
-                const latestPrice =
-                    db
-                        .prepare(`
-                            SELECT
-                                price,
-                                effectiveDate
-                            FROM fuel_price_history
-                            ORDER BY
-                                effectiveDate DESC,
-                                id DESC
-                            LIMIT 1
-                        `)
-                        .get();
+                const latestPriceRows =
+                    await db`
+                        SELECT
+                            price,
+                            "effectiveDate"
+                        FROM fuel_price_history
+                        ORDER BY
+                            "effectiveDate" DESC,
+                            id DESC
+                        LIMIT 1
+                    `;
 
-                if (latestPrice) {
+                if (
+                    latestPriceRows.length > 0
+                ) {
+                    const latestPrice =
+                        latestPriceRows[0];
+
                     fuelPrice = {
                         price:
                             Number(
@@ -2107,8 +2004,7 @@ app.get(
                         unit: "litre",
                         effectiveDate:
                             latestPrice.effectiveDate,
-                        fromHistory:
-                            true
+                        fromHistory: true
                     };
                 }
             }
@@ -2138,17 +2034,20 @@ app.get(
 
                     activeVehicles:
                         Number(
-                            activeVehicles.count
+                            activeVehiclesRows[0]
+                                .count
                         ),
 
                     totalTrips:
                         Number(
-                            totalTrips.count
+                            totalTripsRows[0]
+                                .count
                         ),
 
                     completedTrips:
                         Number(
-                            completedTrips.count
+                            completedTripsRows[0]
+                                .count
                         )
                 },
 
@@ -2179,7 +2078,7 @@ app.get(
 
 app.get(
     "/analytics",
-    (req, res) => {
+    async (req, res) => {
         try {
             const vehicleId =
                 req.query.vehicleId ===
@@ -2199,16 +2098,14 @@ app.get(
                           req.query.tripId
                       );
 
-            /* =========================
-               VALIDATE VEHICLE FILTER
-            ========================= */
-
             if (
                 vehicleId !== null &&
-                (!Number.isInteger(
-                    vehicleId
-                ) ||
-                    vehicleId <= 0)
+                (
+                    !Number.isInteger(
+                        vehicleId
+                    ) ||
+                    vehicleId <= 0
+                )
             ) {
                 return res.status(400).json({
                     error:
@@ -2216,16 +2113,14 @@ app.get(
                 });
             }
 
-            /* =========================
-               VALIDATE TRIP FILTER
-            ========================= */
-
             if (
                 tripId !== null &&
-                (!Number.isInteger(
-                    tripId
-                ) ||
-                    tripId <= 0)
+                (
+                    !Number.isInteger(
+                        tripId
+                    ) ||
+                    tripId <= 0
+                )
             ) {
                 return res.status(400).json({
                     error:
@@ -2233,29 +2128,27 @@ app.get(
                 });
             }
 
-            /* =========================
-               VALIDATE SELECTED TRIP
-            ========================= */
-
             let selectedTrip = null;
 
             if (tripId !== null) {
-                selectedTrip = db
-                    .prepare(`
+                const tripRows =
+                    await db`
                         SELECT
                             id,
-                            vehicleId
+                            "vehicleId"
                         FROM trips
-                        WHERE id = ?
-                    `)
-                    .get(tripId);
+                        WHERE id = ${tripId}
+                    `;
 
-                if (!selectedTrip) {
+                if (tripRows.length === 0) {
                     return res.status(404).json({
                         error:
                             "Trip not found"
                     });
                 }
+
+                selectedTrip =
+                    tripRows[0];
 
                 if (
                     vehicleId !== null &&
@@ -2271,45 +2164,33 @@ app.get(
                 }
             }
 
-            /* =========================
-               GET ENTRIES
-            ========================= */
-
             const entriesData =
-                getAllEntries();
+                await getAllEntries();
 
             let entries =
                 entriesData.entries || [];
 
-            /*
-                Mileage is calculated by
-                entryService before filtering.
-                This means filtering does not
-                destroy the vehicle's mileage
-                history.
-            */
-
             if (vehicleId !== null) {
-                entries = entries.filter(
-                    (entry) =>
-                        Number(
-                            entry.vehicleId
-                        ) === vehicleId
-                );
+                entries =
+                    entries.filter(
+                        (entry) =>
+                            Number(
+                                entry.vehicleId
+                            ) ===
+                            vehicleId
+                    );
             }
 
             if (tripId !== null) {
-                entries = entries.filter(
-                    (entry) =>
-                        Number(
-                            entry.tripId
-                        ) === tripId
-                );
+                entries =
+                    entries.filter(
+                        (entry) =>
+                            Number(
+                                entry.tripId
+                            ) ===
+                            tripId
+                    );
             }
-
-            /* =========================
-               SUMMARY
-            ========================= */
 
             const totalSpending =
                 entries.reduce(
@@ -2491,9 +2372,10 @@ app.get(
             const vehicleData = {};
 
             entries.forEach((entry) => {
-                const id = Number(
-                    entry.vehicleId
-                );
+                const id =
+                    Number(
+                        entry.vehicleId
+                    );
 
                 if (
                     !vehicleData[id]
@@ -2515,14 +2397,14 @@ app.get(
 
                 vehicleData[id]
                     .spending += Number(
-                    entry.totalPrice ||
-                        0
-                );
+                        entry.totalPrice ||
+                            0
+                    );
 
                 vehicleData[id]
                     .litres += Number(
-                    entry.litres || 0
-                );
+                        entry.litres || 0
+                    );
             });
 
             const spendingByVehicle =
@@ -2571,9 +2453,10 @@ app.get(
                     return;
                 }
 
-                const id = Number(
-                    entry.vehicleId
-                );
+                const id =
+                    Number(
+                        entry.vehicleId
+                    );
 
                 if (
                     !mileageByVehicle[
@@ -2700,26 +2583,23 @@ app.get(
 
             /* =========================
                FUEL PRICE HISTORY
-
-               This remains global because
-               fuel prices are not tied to
-               a particular vehicle/trip.
             ========================= */
 
+            const fuelPriceHistoryRows =
+                await db`
+                    SELECT
+                        id,
+                        price,
+                        "effectiveDate"
+                    FROM fuel_price_history
+                    ORDER BY
+                        "effectiveDate" ASC,
+                        id ASC
+                `;
+
             const fuelPriceHistory =
-                db
-                    .prepare(`
-                        SELECT
-                            id,
-                            price,
-                            effectiveDate
-                        FROM fuel_price_history
-                        ORDER BY
-                            effectiveDate ASC,
-                            id ASC
-                    `)
-                    .all()
-                    .map((item) => ({
+                fuelPriceHistoryRows.map(
+                    (item) => ({
                         ...item,
 
                         price:
@@ -2730,87 +2610,149 @@ app.get(
                                     2
                                 )
                             )
-                    }));
+                    })
+                );
 
             /* =========================
                TRIP ANALYTICS
             ========================= */
 
-            let tripQuery = `
-                SELECT
-                    trips.id,
-                    trips.name,
-                    trips.startLocation,
-                    trips.destination,
-                    trips.startDate,
-                    trips.endDate,
-                    trips.vehicleId,
+            let trips;
 
-                    vehicles.name
-                        AS vehicleName,
+            if (vehicleId !== null) {
+                if (tripId !== null) {
+                    trips = await db`
+                        SELECT
+                            trips.id,
+                            trips.name,
+                            trips."startLocation",
+                            trips.destination,
+                            trips."startDate",
+                            trips."endDate",
+                            trips."vehicleId",
 
-                    vehicles.registration
-                        AS vehicleRegistration,
+                            vehicles.name AS
+                                "vehicleName",
 
-                    trips.startOdometer,
-                    trips.endOdometer
+                            vehicles.registration AS
+                                "vehicleRegistration",
 
-                FROM trips
+                            trips."startOdometer",
+                            trips."endOdometer"
 
-                INNER JOIN vehicles
-                    ON vehicles.id =
-                       trips.vehicleId
-            `;
+                        FROM trips
 
-            const tripConditions = [];
-            const tripParameters = [];
+                        INNER JOIN vehicles
+                            ON vehicles.id =
+                               trips."vehicleId"
 
-            if (
-                vehicleId !== null
-            ) {
-                tripConditions.push(
-                    "trips.vehicleId = ?"
-                );
+                        WHERE trips."vehicleId" =
+                            ${vehicleId}
+                          AND trips.id =
+                            ${tripId}
 
-                tripParameters.push(
-                    vehicleId
-                );
+                        ORDER BY
+                            trips."startDate" ASC,
+                            trips.id ASC
+                    `;
+                } else {
+                    trips = await db`
+                        SELECT
+                            trips.id,
+                            trips.name,
+                            trips."startLocation",
+                            trips.destination,
+                            trips."startDate",
+                            trips."endDate",
+                            trips."vehicleId",
+
+                            vehicles.name AS
+                                "vehicleName",
+
+                            vehicles.registration AS
+                                "vehicleRegistration",
+
+                            trips."startOdometer",
+                            trips."endOdometer"
+
+                        FROM trips
+
+                        INNER JOIN vehicles
+                            ON vehicles.id =
+                               trips."vehicleId"
+
+                        WHERE trips."vehicleId" =
+                            ${vehicleId}
+
+                        ORDER BY
+                            trips."startDate" ASC,
+                            trips.id ASC
+                    `;
+                }
+            } else if (tripId !== null) {
+                trips = await db`
+                    SELECT
+                        trips.id,
+                        trips.name,
+                        trips."startLocation",
+                        trips.destination,
+                        trips."startDate",
+                        trips."endDate",
+                        trips."vehicleId",
+
+                        vehicles.name AS
+                            "vehicleName",
+
+                        vehicles.registration AS
+                            "vehicleRegistration",
+
+                        trips."startOdometer",
+                        trips."endOdometer"
+
+                    FROM trips
+
+                    INNER JOIN vehicles
+                        ON vehicles.id =
+                           trips."vehicleId"
+
+                    WHERE trips.id =
+                        ${tripId}
+
+                    ORDER BY
+                        trips."startDate" ASC,
+                        trips.id ASC
+                `;
+            } else {
+                trips = await db`
+                    SELECT
+                        trips.id,
+                        trips.name,
+                        trips."startLocation",
+                        trips.destination,
+                        trips."startDate",
+                        trips."endDate",
+                        trips."vehicleId",
+
+                        vehicles.name AS
+                            "vehicleName",
+
+                        vehicles.registration AS
+                            "vehicleRegistration",
+
+                        trips."startOdometer",
+                        trips."endOdometer"
+
+                    FROM trips
+
+                    INNER JOIN vehicles
+                        ON vehicles.id =
+                           trips."vehicleId"
+
+                    ORDER BY
+                        trips."startDate" ASC,
+                        trips.id ASC
+                `;
             }
-
-            if (
-                tripId !== null
-            ) {
-                tripConditions.push(
-                    "trips.id = ?"
-                );
-
-                tripParameters.push(
-                    tripId
-                );
-            }
-
-            if (
-                tripConditions.length >
-                0
-            ) {
-                tripQuery +=
-                    " WHERE " +
-                    tripConditions.join(
-                        " AND "
-                    );
-            }
-
-            tripQuery += `
-                ORDER BY
-                    trips.startDate ASC,
-                    trips.id ASC
-            `;
-
-            const trips = db
-                .prepare(tripQuery)
-                .all(
-                    ...tripParameters
-                );
 
             const tripAnalytics =
                 trips.map((trip) => {

@@ -20,7 +20,7 @@ function AddEntry({ setEntries, setShowAddEntry }) {
             return;
         }
 
-        fetch("http://192.168.18.72:5000/fuel-price")
+        fetch("https://petrol-khata.onrender.com/fuel-price")
             .then((response) => response.json())
             .then((data) => {
                 setLivePrice(data.price);
@@ -62,7 +62,7 @@ function AddEntry({ setEntries, setShowAddEntry }) {
 
         try {
             const response = await fetch(
-                "http://192.168.18.72:5000/entries",
+                "https://petrol-khata.onrender.com/entries",
                 {
                     method: "POST",
                     headers: {

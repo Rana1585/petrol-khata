@@ -19,7 +19,7 @@ const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
 
 useEffect(() => {
-    fetch("http://192.168.18.72:5000/entries")
+    fetch("https://petrol-khata.onrender.com/entries")
         .then((response) => response.json())
         .then((data) => {
             setEntries(data.entries || []);

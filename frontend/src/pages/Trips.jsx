@@ -31,8 +31,8 @@ function Trips() {
 
             const [tripsResponse, vehiclesResponse] =
                 await Promise.all([
-                    fetch("http://192.168.18.72:5000/trips"),
-                    fetch("http://192.168.18.72:5000/vehicles"),
+                    fetch("https://petrol-khata.onrender.com/trips"),
+                    fetch("https://petrol-khata.onrender.com/vehicles"),
                 ]);
 
             if (
@@ -98,7 +98,7 @@ function Trips() {
             setError("");
 
             const response = await fetch(
-                "http://192.168.18.72:5000/trips",
+                "https://petrol-khata.onrender.com/trips",
                 {
                     method: "POST",
                     headers: {
@@ -165,7 +165,7 @@ function Trips() {
             setError("");
 
             const response = await fetch(
-                `http://192.168.18.72:5000/trips/${id}`,
+                `https://petrol-khata.onrender.com/trips/${id}`,
                 {
                     method: "DELETE",
                 }
