@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+const API_BASE_URL = "https://petrol-khata.onrender.com";
+
 function Vehicles() {
     const [vehicles, setVehicles] = useState([]);
     const [maintenance, setMaintenance] = useState([]);
 
-    const [showVehicleForm, setShowVehicleForm] =
-        useState(false);
+    const [showVehicleForm, setShowVehicleForm] = useState(false);
+    const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
 
-    const [showMaintenanceForm, setShowMaintenanceForm] =
-        useState(false);
-
-    const [selectedVehicle, setSelectedVehicle] =
-        useState(null);
-
+    const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const [vehicleForm, setVehicleForm] = useState({
@@ -42,83 +39,51 @@ function Vehicles() {
 
     async function loadData() {
         try {
-            const [vehiclesResponse, maintenanceResponse] =
-                await Promise.all([
-                    fetch("https://petrol-khata.onrender.com/vehicles"),
-                    fetch(
-                        "https://petrol-khata.onrender.com/vehicle-maintenance"
-                    ),
-                ]);
+            setLoading(true);
 
-            const vehiclesData =
-                await vehiclesResponse.json();
+            const [vehiclesResponse, maintenanceResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/vehicles`),
+                fetch(`${API_BASE_URL}/vehicle-maintenance`),
+            ]);
 
-            const maintenanceData =
-                await maintenanceResponse.json();
+            if (!vehiclesResponse.ok) {
+                throw new Error("Failed to load vehicles");
+            }
 
-            setVehicles(
-                vehiclesData.vehicles ||
-                    vehiclesData ||
-                    []
-            );
+            if (!maintenanceResponse.ok) {
+                throw new Error("Failed to load maintenance records");
+            }
 
+            const vehiclesData = await vehiclesResponse.json();
+            const maintenanceData = await maintenanceResponse.json();
+
+            setVehicles(vehiclesData.vehicles || vehiclesData || []);
             setMaintenance(
                 maintenanceData.maintenance ||
-                    maintenanceData.records ||
                     maintenanceData ||
                     []
             );
         } catch (error) {
-            console.error(
-                "Failed to load vehicles:",
-                error
-            );
+            console.error("Failed to load vehicle data:", error);
         } finally {
             setLoading(false);
         }
     }
 
-    function handleVehicleChange(event) {
-        setVehicleForm({
-            ...vehicleForm,
-            [event.target.name]: event.target.value,
-        });
-    }
-
-    function handleMaintenanceChange(event) {
-        setMaintenanceForm({
-            ...maintenanceForm,
-            [event.target.name]: event.target.value,
-        });
-    }
-
     async function handleAddVehicle(event) {
         event.preventDefault();
 
-        if (!vehicleForm.name.trim()) {
-            return;
-        }
-
         try {
-            const response = await fetch(
-                "https://petrol-khata.onrender.com/vehicles",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        name: vehicleForm.name,
-                        registration:
-                            vehicleForm.registration,
-                    }),
-                }
-            );
+            const response = await fetch(`${API_BASE_URL}/vehicles`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(vehicleForm),
+            });
 
             if (!response.ok) {
-                throw new Error(
-                    "Failed to create vehicle"
-                );
+                throw new Error("Failed to add vehicle");
             }
 
             setVehicleForm({
@@ -130,78 +95,28 @@ function Vehicles() {
 
             await loadData();
         } catch (error) {
-            console.error(
-                "Failed to add vehicle:",
-                error
-            );
+            console.error("Failed to add vehicle:", error);
+            alert("Failed to add vehicle.");
         }
     }
 
     async function handleAddMaintenance(event) {
         event.preventDefault();
 
-        if (
-            !maintenanceForm.vehicleId ||
-            !maintenanceForm.date ||
-            !maintenanceForm.meterReading
-        ) {
-            return;
-        }
-
         try {
             const response = await fetch(
-                "https://petrol-khata.onrender.com/vehicle-maintenance",
+                `${API_BASE_URL}/vehicle-maintenance`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        vehicleId: Number(
-                            maintenanceForm.vehicleId
-                        ),
-                        date: maintenanceForm.date,
-                        meterReading: Number(
-                            maintenanceForm.meterReading
-                        ),
-
-                        mobileOil:
-                            maintenanceForm.mobileOil,
-                        mobileOilCost: Number(
-                            maintenanceForm.mobileOilCost ||
-                                0
-                        ),
-
-                        oilFilter:
-                            maintenanceForm.oilFilter,
-                        oilFilterCost: Number(
-                            maintenanceForm.oilFilterCost ||
-                                0
-                        ),
-
-                        airFilter:
-                            maintenanceForm.airFilter,
-                        airFilterCost: Number(
-                            maintenanceForm.airFilterCost ||
-                                0
-                        ),
-
-                        otherMaintenance:
-                            maintenanceForm.otherMaintenance,
-                        otherMaintenanceCost: Number(
-                            maintenanceForm.otherMaintenanceCost ||
-                                0
-                        ),
-
-                        notes: maintenanceForm.notes,
-                    }),
+                    body: JSON.stringify(maintenanceForm),
                 }
             );
 
             if (!response.ok) {
-                throw new Error(
-                    "Failed to create maintenance record"
-                );
+                throw new Error("Failed to add maintenance record");
             }
 
             setMaintenanceForm({
@@ -219,15 +134,12 @@ function Vehicles() {
                 notes: "",
             });
 
-            setSelectedVehicle(null);
             setShowMaintenanceForm(false);
 
             await loadData();
         } catch (error) {
-            console.error(
-                "Failed to add maintenance:",
-                error
-            );
+            console.error("Failed to add maintenance:", error);
+            alert("Failed to add maintenance record.");
         }
     }
 
@@ -236,165 +148,196 @@ function Vehicles() {
             "Are you sure you want to deactivate this vehicle?"
         );
 
-        if (!confirmed) {
-            return;
-        }
+        if (!confirmed) return;
 
         try {
             const response = await fetch(
-                `https://petrol-khata.onrender.com/vehicles/${vehicleId}`,
+                `${API_BASE_URL}/vehicles/${vehicleId}`,
                 {
                     method: "DELETE",
                 }
             );
 
             if (!response.ok) {
+                throw new Error("Failed to deactivate vehicle");
+            }
+
+            await loadData();
+        } catch (error) {
+            console.error("Failed to deactivate vehicle:", error);
+            alert("Failed to deactivate vehicle.");
+        }
+    }
+
+    async function handleDeleteVehicle(vehicleId) {
+        const confirmed = window.confirm(
+            "This will permanently delete the vehicle and all of its related fuel entries, trips, maintenance records, and vehicle records. This action cannot be undone.\n\nAre you sure you want to permanently delete this vehicle?"
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/vehicles/${vehicleId}/permanent`,
+                {
+                    method: "DELETE",
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+
                 throw new Error(
-                    "Failed to deactivate vehicle"
+                    errorData?.error || "Failed to permanently delete vehicle"
                 );
             }
 
             await loadData();
         } catch (error) {
-            console.error(
-                "Failed to deactivate vehicle:",
-                error
+            console.error("Failed to permanently delete vehicle:", error);
+            alert(
+                error.message ||
+                    "Failed to permanently delete vehicle."
             );
         }
     }
 
-    function formatMoney(value) {
-        return `Rs ${Number(value || 0).toLocaleString(
-            undefined,
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2,
-            }
-        )}`;
-    }
-
-    function getMaintenanceForVehicle(vehicleId) {
+    function getVehicleMaintenance(vehicleId) {
         return maintenance.filter(
-            (item) =>
-                Number(item.vehicleId) ===
-                Number(vehicleId)
+            (record) => Number(record.vehicleId) === Number(vehicleId)
         );
     }
 
-    function getMaintenanceCost(vehicleId) {
-        return getMaintenanceForVehicle(vehicleId).reduce(
-            (total, item) => {
-                return (
-                    total +
-                    Number(item.totalCost || 0) +
-                    Number(item.mobileOilCost || 0) +
-                    Number(item.oilFilterCost || 0) +
-                    Number(item.airFilterCost || 0) +
-                    Number(
-                        item.otherMaintenanceCost || 0
-                    )
-                );
-            },
-            0
-        );
+    function getMaintenanceTotal(vehicleId) {
+        const records = getVehicleMaintenance(vehicleId);
+
+        return records.reduce((total, record) => {
+            return (
+                total +
+                Number(record.mobileOilCost || 0) +
+                Number(record.oilFilterCost || 0) +
+                Number(record.airFilterCost || 0) +
+                Number(record.otherMaintenanceCost || 0)
+            );
+        }, 0);
+    }
+
+    function openMaintenanceForm(vehicle) {
+        setSelectedVehicle(vehicle);
+
+        setMaintenanceForm({
+            vehicleId: vehicle.id,
+            date: new Date().toISOString().split("T")[0],
+            meterReading: "",
+            mobileOil: "",
+            mobileOilCost: "",
+            oilFilter: "",
+            oilFilterCost: "",
+            airFilter: "",
+            airFilterCost: "",
+            otherMaintenance: "",
+            otherMaintenanceCost: "",
+            notes: "",
+        });
+
+        setShowMaintenanceForm(true);
     }
 
     if (loading) {
         return (
-            <main className="page">
-                <div className="loading-state">
-                    Loading vehicles...
-                </div>
+            <main className="page-container">
+                <p>Loading vehicles...</p>
             </main>
         );
     }
 
     return (
-        <main className="page">
+        <main className="page-container">
             <div className="page-header">
                 <div>
                     <h1>Vehicles</h1>
-
                     <p>
-                        Manage your vehicles and keep track
-                        of their maintenance.
+                        Manage your vehicles and keep track of their
+                        maintenance.
                     </p>
                 </div>
 
                 <div className="page-header-actions">
                     <button
+                        type="button"
+                        className="primary-button"
+                        onClick={() => setShowVehicleForm(true)}
+                    >
+                        Add Vehicle
+                    </button>
+
+                    <button
+                        type="button"
                         className="secondary-button"
                         onClick={() => {
                             setSelectedVehicle(null);
                             setShowMaintenanceForm(true);
                         }}
                     >
-                        + Add Maintenance
-                    </button>
-
-                    <button
-                        className="primary-button"
-                        onClick={() =>
-                            setShowVehicleForm(true)
-                        }
-                    >
-                        + Add Vehicle
+                        Add Maintenance
                     </button>
                 </div>
             </div>
 
             {showVehicleForm && (
                 <section className="form-card">
-                    <div className="card-header">
-                        <div>
-                            <h2>Add Vehicle</h2>
+                    <div className="section-header">
+                        <h2>Add Vehicle</h2>
 
-                            <p>
-                                Add a vehicle to your Petrol
-                                Khata.
-                            </p>
-                        </div>
+                        <button
+                            type="button"
+                            className="close-button"
+                            onClick={() => setShowVehicleForm(false)}
+                        >
+                            ×
+                        </button>
                     </div>
 
-                    <form
-                        className="entry-form"
-                        onSubmit={handleAddVehicle}
-                    >
+                    <form onSubmit={handleAddVehicle}>
                         <div className="form-grid">
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="vehicle-name">
                                     Vehicle Name
                                 </label>
 
                                 <input
+                                    id="vehicle-name"
                                     type="text"
-                                    name="name"
-                                    value={
-                                        vehicleForm.name
+                                    value={vehicleForm.name}
+                                    onChange={(event) =>
+                                        setVehicleForm({
+                                            ...vehicleForm,
+                                            name: event.target.value,
+                                        })
                                     }
-                                    onChange={
-                                        handleVehicleChange
-                                    }
-                                    placeholder="e.g. Toyota Corolla"
+                                    placeholder="e.g. Honda Civic"
                                     required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
-                                    Registration Number
+                                <label htmlFor="vehicle-registration">
+                                    Registration
                                 </label>
 
                                 <input
+                                    id="vehicle-registration"
                                     type="text"
-                                    name="registration"
-                                    value={
-                                        vehicleForm.registration
-                                    }
-                                    onChange={
-                                        handleVehicleChange
+                                    value={vehicleForm.registration}
+                                    onChange={(event) =>
+                                        setVehicleForm({
+                                            ...vehicleForm,
+                                            registration:
+                                                event.target.value,
+                                        })
                                     }
                                     placeholder="e.g. ABC-123"
+                                    required
                                 />
                             </div>
                         </div>
@@ -414,7 +357,7 @@ function Vehicles() {
                                 type="submit"
                                 className="primary-button"
                             >
-                                Add Vehicle
+                                Save Vehicle
                             </button>
                         </div>
                     </form>
@@ -423,32 +366,45 @@ function Vehicles() {
 
             {showMaintenanceForm && (
                 <section className="form-card">
-                    <div className="card-header">
+                    <div className="section-header">
                         <div>
-                            <h2>Add Maintenance</h2>
+                            <h2>Add Maintenance Record</h2>
 
-                            <p>
-                                Record maintenance work and
-                                expenses for a vehicle.
-                            </p>
+                            {selectedVehicle && (
+                                <p>
+                                    Vehicle: {selectedVehicle.name} (
+                                    {selectedVehicle.registration})
+                                </p>
+                            )}
                         </div>
+
+                        <button
+                            type="button"
+                            className="close-button"
+                            onClick={() =>
+                                setShowMaintenanceForm(false)
+                            }
+                        >
+                            ×
+                        </button>
                     </div>
 
-                    <form
-                        className="entry-form"
-                        onSubmit={handleAddMaintenance}
-                    >
+                    <form onSubmit={handleAddMaintenance}>
                         <div className="form-grid">
                             <div className="form-group">
-                                <label>Vehicle</label>
+                                <label htmlFor="maintenance-vehicle">
+                                    Vehicle
+                                </label>
 
                                 <select
-                                    name="vehicleId"
-                                    value={
-                                        maintenanceForm.vehicleId
-                                    }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    id="maintenance-vehicle"
+                                    value={maintenanceForm.vehicleId}
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            vehicleId:
+                                                event.target.value,
+                                        })
                                     }
                                     required
                                 >
@@ -456,217 +412,243 @@ function Vehicles() {
                                         Select vehicle
                                     </option>
 
-                                    {vehicles.map(
-                                        (vehicle) => (
-                                            <option
-                                                key={
-                                                    vehicle.id
-                                                }
-                                                value={
-                                                    vehicle.id
-                                                }
-                                            >
-                                                {vehicle.name}
-                                                {vehicle.registration
-                                                    ? ` - ${vehicle.registration}`
-                                                    : ""}
-                                            </option>
+                                    {vehicles
+                                        .filter(
+                                            (vehicle) =>
+                                                Number(vehicle.active) !==
+                                                0
                                         )
-                                    )}
+                                        .map((vehicle) => (
+                                            <option
+                                                key={vehicle.id}
+                                                value={vehicle.id}
+                                            >
+                                                {vehicle.name} -{" "}
+                                                {vehicle.registration}
+                                            </option>
+                                        ))}
                                 </select>
                             </div>
 
                             <div className="form-group">
-                                <label>Date</label>
+                                <label htmlFor="maintenance-date">
+                                    Date
+                                </label>
 
                                 <input
+                                    id="maintenance-date"
                                     type="date"
-                                    name="date"
-                                    value={
-                                        maintenanceForm.date
-                                    }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    value={maintenanceForm.date}
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            date: event.target.value,
+                                        })
                                     }
                                     required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="maintenance-meter">
                                     Meter Reading
                                 </label>
 
                                 <input
+                                    id="maintenance-meter"
                                     type="number"
-                                    name="meterReading"
                                     value={
                                         maintenanceForm.meterReading
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            meterReading:
+                                                event.target.value,
+                                        })
                                     }
-                                    placeholder="e.g. 50000"
-                                    required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="mobile-oil">
                                     Mobile Oil
                                 </label>
 
                                 <input
+                                    id="mobile-oil"
                                     type="text"
-                                    name="mobileOil"
-                                    value={
-                                        maintenanceForm.mobileOil
+                                    value={maintenanceForm.mobileOil}
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            mobileOil:
+                                                event.target.value,
+                                        })
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
-                                    }
-                                    placeholder="e.g. Shell 10W-40"
+                                    placeholder="e.g. Total Quartz 9000"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="mobile-oil-cost">
                                     Mobile Oil Cost
                                 </label>
 
                                 <input
+                                    id="mobile-oil-cost"
                                     type="number"
-                                    name="mobileOilCost"
                                     value={
                                         maintenanceForm.mobileOilCost
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            mobileOilCost:
+                                                event.target.value,
+                                        })
                                     }
-                                    placeholder="Rs"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="oil-filter">
                                     Oil Filter
                                 </label>
 
                                 <input
+                                    id="oil-filter"
                                     type="text"
-                                    name="oilFilter"
-                                    value={
-                                        maintenanceForm.oilFilter
+                                    value={maintenanceForm.oilFilter}
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            oilFilter:
+                                                event.target.value,
+                                        })
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
-                                    }
-                                    placeholder="Filter details"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="oil-filter-cost">
                                     Oil Filter Cost
                                 </label>
 
                                 <input
+                                    id="oil-filter-cost"
                                     type="number"
-                                    name="oilFilterCost"
                                     value={
                                         maintenanceForm.oilFilterCost
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            oilFilterCost:
+                                                event.target.value,
+                                        })
                                     }
-                                    placeholder="Rs"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="air-filter">
                                     Air Filter
                                 </label>
 
                                 <input
+                                    id="air-filter"
                                     type="text"
-                                    name="airFilter"
-                                    value={
-                                        maintenanceForm.airFilter
+                                    value={maintenanceForm.airFilter}
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            airFilter:
+                                                event.target.value,
+                                        })
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
-                                    }
-                                    placeholder="Filter details"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="air-filter-cost">
                                     Air Filter Cost
                                 </label>
 
                                 <input
+                                    id="air-filter-cost"
                                     type="number"
-                                    name="airFilterCost"
                                     value={
                                         maintenanceForm.airFilterCost
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            airFilterCost:
+                                                event.target.value,
+                                        })
                                     }
-                                    placeholder="Rs"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
+                                <label htmlFor="other-maintenance">
                                     Other Maintenance
                                 </label>
 
                                 <input
+                                    id="other-maintenance"
                                     type="text"
-                                    name="otherMaintenance"
                                     value={
                                         maintenanceForm.otherMaintenance
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            otherMaintenance:
+                                                event.target.value,
+                                        })
                                     }
                                     placeholder="e.g. Brake service"
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>
-                                    Other Cost
+                                <label htmlFor="other-maintenance-cost">
+                                    Other Maintenance Cost
                                 </label>
 
                                 <input
+                                    id="other-maintenance-cost"
                                     type="number"
-                                    name="otherMaintenanceCost"
                                     value={
                                         maintenanceForm.otherMaintenanceCost
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            otherMaintenanceCost:
+                                                event.target.value,
+                                        })
                                     }
-                                    placeholder="Rs"
                                 />
                             </div>
 
-                            <div className="form-group form-group-full">
-                                <label>Notes</label>
+                            <div className="form-group full-width">
+                                <label htmlFor="maintenance-notes">
+                                    Notes
+                                </label>
 
                                 <textarea
-                                    name="notes"
-                                    value={
-                                        maintenanceForm.notes
+                                    id="maintenance-notes"
+                                    value={maintenanceForm.notes}
+                                    onChange={(event) =>
+                                        setMaintenanceForm({
+                                            ...maintenanceForm,
+                                            notes: event.target.value,
+                                        })
                                     }
-                                    onChange={
-                                        handleMaintenanceChange
-                                    }
-                                    placeholder="Additional notes..."
+                                    placeholder="Any additional notes..."
                                     rows="3"
                                 />
                             </div>
@@ -677,9 +659,7 @@ function Vehicles() {
                                 type="button"
                                 className="secondary-button"
                                 onClick={() =>
-                                    setShowMaintenanceForm(
-                                        false
-                                    )
+                                    setShowMaintenanceForm(false)
                                 }
                             >
                                 Cancel
@@ -696,81 +676,68 @@ function Vehicles() {
                 </section>
             )}
 
-            {vehicles.length === 0 ? (
-                <div className="empty-state">
-                    <h2>No vehicles yet</h2>
-
-                    <p>
-                        Add your first vehicle to start
-                        tracking fuel and maintenance.
-                    </p>
-
-                    <button
-                        className="primary-button"
-                        onClick={() =>
-                            setShowVehicleForm(true)
-                        }
-                    >
-                        + Add Vehicle
-                    </button>
+            <section className="vehicles-section">
+                <div className="section-header">
+                    <div>
+                        <h2>Your Vehicles</h2>
+                        <p>
+                            {vehicles.length} vehicle
+                            {vehicles.length !== 1 ? "s" : ""}
+                        </p>
+                    </div>
                 </div>
-            ) : (
-                <section className="vehicle-grid">
-                    {vehicles.map((vehicle) => {
-                        const vehicleMaintenance =
-                            getMaintenanceForVehicle(
-                                vehicle.id
-                            );
 
-                        const maintenanceCost =
-                            getMaintenanceCost(
-                                vehicle.id
-                            );
+                {vehicles.length === 0 ? (
+                    <div className="empty-state">
+                        <h3>No vehicles yet</h3>
+                        <p>
+                            Add your first vehicle to start tracking fuel
+                            and maintenance.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="vehicles-grid">
+                        {vehicles.map((vehicle) => {
+                            const vehicleMaintenance =
+                                getVehicleMaintenance(vehicle.id);
 
-                        return (
-                            <div
-                                className="vehicle-card"
-                                key={vehicle.id}
-                            >
-                                <Link
-                                    to={`/vehicles/${vehicle.id}`}
-                                    className="vehicle-card-link"
+                            const maintenanceTotal =
+                                getMaintenanceTotal(vehicle.id);
+
+                            const isActive =
+                                Number(vehicle.active) !== 0;
+
+                            return (
+                                <article
+                                    className="vehicle-card"
+                                    key={vehicle.id}
                                 >
-                                    <div className="vehicle-card-top">
-                                        <div className="vehicle-icon">
-                                            🚗
+                                    <div className="vehicle-card-header">
+                                        <div>
+                                            <h3>{vehicle.name}</h3>
+
+                                            <p>
+                                                {vehicle.registration}
+                                            </p>
                                         </div>
 
                                         <span
-                                            className={
-                                                vehicle.active !==
-                                                0
-                                                    ? "status-badge active"
-                                                    : "status-badge"
-                                            }
+                                            className={`status-badge ${
+                                                isActive
+                                                    ? "active"
+                                                    : "inactive"
+                                            }`}
                                         >
-                                            {vehicle.active !==
-                                            0
+                                            {isActive
                                                 ? "Active"
                                                 : "Inactive"}
                                         </span>
                                     </div>
 
-                                    <div className="vehicle-card-info">
-                                        <h2>
-                                            {vehicle.name}
-                                        </h2>
-
-                                        <p>
-                                            {vehicle.registration ||
-                                                "No registration number"}
-                                        </p>
-                                    </div>
-
                                     <div className="vehicle-card-stats">
                                         <div>
                                             <span>
-                                                Maintenance
+                                                Maintenance Records
                                             </span>
 
                                             <strong>
@@ -786,40 +753,64 @@ function Vehicles() {
                                             </span>
 
                                             <strong>
-                                                {formatMoney(
-                                                    maintenanceCost
-                                                )}
+                                                Rs{" "}
+                                                {maintenanceTotal.toLocaleString()}
                                             </strong>
                                         </div>
                                     </div>
 
-                                    <div className="vehicle-card-footer">
-                                        <span>
-                                            View Details →
-                                        </span>
-                                    </div>
-                                </Link>
-
-                                {vehicle.active !== 0 && (
                                     <div className="vehicle-card-actions">
+                                        <Link
+                                            to={`/vehicles/${vehicle.id}`}
+                                            className="secondary-button"
+                                        >
+                                            View Details
+                                        </Link>
+
+                                        <button
+                                            type="button"
+                                            className="secondary-button"
+                                            onClick={() =>
+                                                openMaintenanceForm(
+                                                    vehicle
+                                                )
+                                            }
+                                        >
+                                            Add Maintenance
+                                        </button>
+
+                                        {isActive && (
+                                            <button
+                                                type="button"
+                                                className="danger-button"
+                                                onClick={() =>
+                                                    handleDeactivate(
+                                                        vehicle.id
+                                                    )
+                                                }
+                                            >
+                                                Deactivate
+                                            </button>
+                                        )}
+
                                         <button
                                             type="button"
                                             className="danger-button"
                                             onClick={() =>
-                                                handleDeactivate(
+                                                handleDeleteVehicle(
                                                     vehicle.id
                                                 )
                                             }
                                         >
-                                            Deactivate
+                                            Delete Permanently
                                         </button>
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </section>
-            )}
+                                </article>
+                            );
+                        })}
+                    </div>
+                )}
+            </section>
         </main>
     );
 }

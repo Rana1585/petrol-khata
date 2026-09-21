@@ -403,6 +403,117 @@ app.delete("/vehicles/:id", async (req, res) => {
     }
 });
 
+app.delete("/vehicles/:id/permanent", async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({
+                error: "Invalid vehicle ID"
+            });
+        }
+
+        const result = await db.begin(async (tx) => {
+            const vehicleRows = await tx`
+                SELECT
+                    id,
+                    name,
+                    registration
+                FROM vehicles
+                WHERE id = ${id}
+                FOR UPDATE
+            `;
+
+            if (vehicleRows.length === 0) {
+                return null;
+            }
+
+            const vehicle = vehicleRows[0];
+
+            // Delete fuel entries first because
+            // entries can reference trips.
+            const deletedEntries = await tx`
+                DELETE FROM entries
+                WHERE "vehicleId" = ${id}
+                RETURNING id
+            `;
+
+            // Delete trips after their fuel entries.
+            const deletedTrips = await tx`
+                DELETE FROM trips
+                WHERE "vehicleId" = ${id}
+                RETURNING id
+            `;
+
+            // Delete other vehicle-specific records.
+            const deletedVehicleRecords = await tx`
+                DELETE FROM vehicle_records
+                WHERE "vehicleId" = ${id}
+                RETURNING id
+            `;
+
+            const deletedMaintenance = await tx`
+                DELETE FROM vehicle_maintenance
+                WHERE "vehicleId" = ${id}
+                RETURNING id
+            `;
+
+            // Finally delete the vehicle itself.
+            const deletedVehicle = await tx`
+                DELETE FROM vehicles
+                WHERE id = ${id}
+                RETURNING id
+            `;
+
+            return {
+                vehicle,
+                deletedEntries: deletedEntries.length,
+                deletedTrips: deletedTrips.length,
+                deletedVehicleRecords:
+                    deletedVehicleRecords.length,
+                deletedMaintenance:
+                    deletedMaintenance.length,
+                deletedVehicle:
+                    deletedVehicle.length
+            };
+        });
+
+        if (!result) {
+            return res.status(404).json({
+                error: "Vehicle not found"
+            });
+        }
+
+        res.json({
+            message:
+                "Vehicle and all related records permanently deleted",
+            vehicle: result.vehicle,
+            deleted: {
+                entries:
+                    result.deletedEntries,
+                trips:
+                    result.deletedTrips,
+                vehicleRecords:
+                    result.deletedVehicleRecords,
+                maintenance:
+                    result.deletedMaintenance,
+                vehicle:
+                    result.deletedVehicle
+            }
+        });
+    } catch (error) {
+        console.error(
+            "Failed to permanently delete vehicle:",
+            error
+        );
+
+        res.status(500).json({
+            error:
+                "Failed to permanently delete vehicle"
+        });
+    }
+});
+
 /* =========================
    FUEL ENTRIES
 ========================= */
