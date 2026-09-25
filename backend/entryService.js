@@ -46,18 +46,58 @@ function validateEntryData(data) {
     }
 }
 
-async function getPreviousEntry(vehicleId, currentEntryId = null) {
+async function verifyVehicleOwnership(vehicleId, userId) {
+    const rows = await db`
+        SELECT id
+        FROM vehicles
+        WHERE id = ${Number(vehicleId)}
+          AND "userId" = ${userId}
+    `;
+
+    return rows.length > 0;
+}
+
+async function verifyTripOwnership(tripId, vehicleId, userId) {
+    if (
+        tripId === undefined ||
+        tripId === null ||
+        tripId === ""
+    ) {
+        return true;
+    }
+
+    const rows = await db`
+        SELECT t.id
+        FROM trips t
+        JOIN vehicles v
+            ON v.id = t."vehicleId"
+        WHERE t.id = ${Number(tripId)}
+          AND t."vehicleId" = ${Number(vehicleId)}
+          AND v."userId" = ${userId}
+    `;
+
+    return rows.length > 0;
+}
+
+async function getPreviousEntry(
+    vehicleId,
+    userId,
+    currentEntryId = null
+) {
     if (currentEntryId) {
         const rows = await db`
             SELECT
-                id,
-                odometer,
-                litres,
-                date
-            FROM entries
-            WHERE "vehicleId" = ${vehicleId}
-              AND id < ${currentEntryId}
-            ORDER BY id DESC
+                e.id,
+                e.odometer,
+                e.litres,
+                e.date
+            FROM entries e
+            JOIN vehicles v
+                ON v.id = e."vehicleId"
+            WHERE e."vehicleId" = ${Number(vehicleId)}
+              AND e.id < ${Number(currentEntryId)}
+              AND v."userId" = ${userId}
+            ORDER BY e.id DESC
             LIMIT 1
         `;
 
@@ -66,20 +106,23 @@ async function getPreviousEntry(vehicleId, currentEntryId = null) {
 
     const rows = await db`
         SELECT
-            id,
-            odometer,
-            litres,
-            date
-        FROM entries
-        WHERE "vehicleId" = ${vehicleId}
-        ORDER BY id DESC
+            e.id,
+            e.odometer,
+            e.litres,
+            e.date
+        FROM entries e
+        JOIN vehicles v
+            ON v.id = e."vehicleId"
+        WHERE e."vehicleId" = ${Number(vehicleId)}
+          AND v."userId" = ${userId}
+        ORDER BY e.id DESC
         LIMIT 1
     `;
 
     return rows[0] || null;
 }
 
-async function createEntry(data) {
+async function createEntry(data, userId) {
     validateEntryData(data);
 
     const {
@@ -92,19 +135,43 @@ async function createEntry(data) {
         tripId
     } = data;
 
+    const vehicleOwned = await verifyVehicleOwnership(
+        vehicleId,
+        userId
+    );
+
+    if (!vehicleOwned) {
+        throw new Error("Vehicle not found");
+    }
+
+    const tripOwned = await verifyTripOwnership(
+        tripId,
+        vehicleId,
+        userId
+    );
+
+    if (!tripOwned) {
+        throw new Error("Trip not found");
+    }
+
     const numericPrice = Number(price);
     const numericLitres = Number(litres);
     const numericOdometer = Number(odometer);
 
     const totalPrice = numericPrice * numericLitres;
 
-    const previousEntry = await getPreviousEntry(vehicleId);
+    const previousEntry = await getPreviousEntry(
+        vehicleId,
+        userId
+    );
 
     let distance = null;
     let mileage = null;
 
     if (previousEntry) {
-        distance = numericOdometer - Number(previousEntry.odometer);
+        distance =
+            numericOdometer -
+            Number(previousEntry.odometer);
 
         if (distance < 0) {
             throw new Error(
@@ -147,16 +214,14 @@ async function createEntry(data) {
         RETURNING *
     `;
 
-    const entry = rows[0];
-
     return {
-        ...entry,
+        ...rows[0],
         distance,
         mileage
     };
 }
 
-async function getAllEntries() {
+async function getAllEntries(userId) {
     const entries = await db`
         SELECT
             e.id,
@@ -176,26 +241,28 @@ async function getAllEntries() {
             ON v.id = e."vehicleId"
         LEFT JOIN trips t
             ON t.id = e."tripId"
+        WHERE v."userId" = ${userId}
         ORDER BY e.date ASC, e.id ASC
     `;
 
     const processedEntries = [];
 
-    for (let i = 0; i < entries.length; i++) {
-        const entry = entries[i];
-
+    for (const entry of entries) {
         const previousEntry = await db`
-            SELECT odometer
-            FROM entries
-            WHERE "vehicleId" = ${entry.vehicleId}
+            SELECT e.odometer
+            FROM entries e
+            JOIN vehicles v
+                ON v.id = e."vehicleId"
+            WHERE e."vehicleId" = ${entry.vehicleId}
+              AND v."userId" = ${userId}
               AND (
-                    date < ${entry.date}
+                    e.date < ${entry.date}
                     OR (
-                        date = ${entry.date}
-                        AND id < ${entry.id}
+                        e.date = ${entry.date}
+                        AND e.id < ${entry.id}
                     )
-              )
-            ORDER BY date DESC, id DESC
+                  )
+            ORDER BY e.date DESC, e.id DESC
             LIMIT 1
         `;
 
@@ -208,7 +275,9 @@ async function getAllEntries() {
                 Number(previousEntry[0].odometer);
 
             if (distance > 0 && Number(entry.litres) > 0) {
-                mileage = distance / Number(entry.litres);
+                mileage =
+                    distance /
+                    Number(entry.litres);
             }
         }
 
@@ -222,33 +291,48 @@ async function getAllEntries() {
     const summaryRows = await db`
         SELECT
             COUNT(*) AS "totalEntries",
-            COALESCE(SUM("totalPrice"), 0) AS "totalSpending",
-            COALESCE(SUM(litres), 0) AS "totalFuel"
-        FROM entries
+            COALESCE(SUM(e."totalPrice"), 0) AS "totalSpending",
+            COALESCE(SUM(e.litres), 0) AS "totalFuel"
+        FROM entries e
+        JOIN vehicles v
+            ON v.id = e."vehicleId"
+        WHERE v."userId" = ${userId}
     `;
 
     const mileageValues = processedEntries
         .map((entry) => entry.mileage)
-        .filter((value) => value !== null && Number.isFinite(value));
+        .filter(
+            (value) =>
+                value !== null &&
+                Number.isFinite(value)
+        );
 
     const averageMileage =
         mileageValues.length > 0
-            ? mileageValues.reduce((sum, value) => sum + value, 0) /
-              mileageValues.length
+            ? mileageValues.reduce(
+                  (sum, value) => sum + value,
+                  0
+              ) / mileageValues.length
             : 0;
 
     return {
         entries: processedEntries,
         summary: {
-            totalEntries: Number(summaryRows[0].totalEntries),
-            totalSpending: Number(summaryRows[0].totalSpending),
-            totalFuel: Number(summaryRows[0].totalFuel),
+            totalEntries: Number(
+                summaryRows[0].totalEntries
+            ),
+            totalSpending: Number(
+                summaryRows[0].totalSpending
+            ),
+            totalFuel: Number(
+                summaryRows[0].totalFuel
+            ),
             averageMileage
         }
     };
 }
 
-async function getEntryById(id) {
+async function getEntryById(id, userId) {
     const rows = await db`
         SELECT
             e.id,
@@ -269,6 +353,7 @@ async function getEntryById(id) {
         LEFT JOIN trips t
             ON t.id = e."tripId"
         WHERE e.id = ${Number(id)}
+          AND v."userId" = ${userId}
     `;
 
     if (rows.length === 0) {
@@ -278,17 +363,20 @@ async function getEntryById(id) {
     const entry = rows[0];
 
     const previousEntry = await db`
-        SELECT odometer
-        FROM entries
-        WHERE "vehicleId" = ${entry.vehicleId}
+        SELECT e.odometer
+        FROM entries e
+        JOIN vehicles v
+            ON v.id = e."vehicleId"
+        WHERE e."vehicleId" = ${entry.vehicleId}
+          AND v."userId" = ${userId}
           AND (
-                date < ${entry.date}
+                e.date < ${entry.date}
                 OR (
-                    date = ${entry.date}
-                    AND id < ${entry.id}
+                    e.date = ${entry.date}
+                    AND e.id < ${entry.id}
                 )
               )
-        ORDER BY date DESC, id DESC
+        ORDER BY e.date DESC, e.id DESC
         LIMIT 1
     `;
 
@@ -301,7 +389,9 @@ async function getEntryById(id) {
             Number(previousEntry[0].odometer);
 
         if (distance > 0 && Number(entry.litres) > 0) {
-            mileage = distance / Number(entry.litres);
+            mileage =
+                distance /
+                Number(entry.litres);
         }
     }
 
@@ -312,7 +402,7 @@ async function getEntryById(id) {
     };
 }
 
-async function updateEntry(id, data) {
+async function updateEntry(id, data, userId) {
     validateEntryData(data);
 
     const {
@@ -325,6 +415,34 @@ async function updateEntry(id, data) {
         tripId
     } = data;
 
+    const existingEntry = await getEntryById(
+        id,
+        userId
+    );
+
+    if (!existingEntry) {
+        return null;
+    }
+
+    const vehicleOwned = await verifyVehicleOwnership(
+        vehicleId,
+        userId
+    );
+
+    if (!vehicleOwned) {
+        throw new Error("Vehicle not found");
+    }
+
+    const tripOwned = await verifyTripOwnership(
+        tripId,
+        vehicleId,
+        userId
+    );
+
+    if (!tripOwned) {
+        throw new Error("Trip not found");
+    }
+
     const numericPrice = Number(price);
     const numericLitres = Number(litres);
     const numericOdometer = Number(odometer);
@@ -332,7 +450,8 @@ async function updateEntry(id, data) {
     const totalPrice = numericPrice * numericLitres;
 
     const previousEntry = await getPreviousEntry(
-        Number(vehicleId),
+        vehicleId,
+        userId,
         Number(id)
     );
 
@@ -351,7 +470,8 @@ async function updateEntry(id, data) {
         }
 
         if (distance > 0 && numericLitres > 0) {
-            mileage = distance / numericLitres;
+            mileage =
+                distance / numericLitres;
         }
     }
 
@@ -373,6 +493,12 @@ async function updateEntry(id, data) {
                     : Number(tripId)
             }
         WHERE id = ${Number(id)}
+          AND EXISTS (
+              SELECT 1
+              FROM vehicles v
+              WHERE v.id = entries."vehicleId"
+                AND v."userId" = ${userId}
+          )
         RETURNING *
     `;
 
@@ -387,11 +513,14 @@ async function updateEntry(id, data) {
     };
 }
 
-async function deleteEntry(id) {
+async function deleteEntry(id, userId) {
     const rows = await db`
-        DELETE FROM entries
-        WHERE id = ${Number(id)}
-        RETURNING id
+        DELETE FROM entries e
+        USING vehicles v
+        WHERE e.id = ${Number(id)}
+          AND v.id = e."vehicleId"
+          AND v."userId" = ${userId}
+        RETURNING e.id
     `;
 
     return rows.length > 0;

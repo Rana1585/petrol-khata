@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../api";
 
 function Trips() {
     const [trips, setTrips] = useState([]);
@@ -29,11 +30,13 @@ function Trips() {
             setLoading(true);
             setError("");
 
-            const [tripsResponse, vehiclesResponse] =
-                await Promise.all([
-                    fetch("https://petrol-khata.onrender.com/trips"),
-                    fetch("https://petrol-khata.onrender.com/vehicles"),
-                ]);
+            const [
+                tripsResponse,
+                vehiclesResponse,
+            ] = await Promise.all([
+                apiFetch("/trips"),
+                apiFetch("/vehicles"),
+            ]);
 
             if (
                 !tripsResponse.ok ||
@@ -97,12 +100,13 @@ function Trips() {
             setSaving(true);
             setError("");
 
-            const response = await fetch(
-                "https://petrol-khata.onrender.com/trips",
+            const response = await apiFetch(
+                "/trips",
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type":
+                            "application/json",
                     },
                     body: JSON.stringify({
                         vehicleId: Number(
@@ -152,10 +156,9 @@ function Trips() {
     }
 
     async function handleDelete(id) {
-        const confirmed =
-            window.confirm(
-                "Delete this trip?"
-            );
+        const confirmed = window.confirm(
+            "Delete this trip?"
+        );
 
         if (!confirmed) {
             return;
@@ -164,8 +167,8 @@ function Trips() {
         try {
             setError("");
 
-            const response = await fetch(
-                `https://petrol-khata.onrender.com/trips/${id}`,
+            const response = await apiFetch(
+                `/trips/${id}`,
                 {
                     method: "DELETE",
                 }
@@ -210,6 +213,7 @@ function Trips() {
             <div className="page-header">
                 <div>
                     <h1>Trips</h1>
+
                     <p>
                         Track your longer journeys
                         and their fuel usage.
@@ -243,9 +247,7 @@ function Trips() {
                 <section className="form-card">
                     <div className="card-header">
                         <div>
-                            <h2>
-                                Create Trip
-                            </h2>
+                            <h2>Create Trip</h2>
 
                             <p>
                                 Record the basic
@@ -257,9 +259,7 @@ function Trips() {
 
                     <form
                         className="entry-form"
-                        onSubmit={
-                            handleSubmit
-                        }
+                        onSubmit={handleSubmit}
                     >
                         <div className="form-grid">
                             <div className="form-group">
@@ -479,9 +479,7 @@ function Trips() {
             <section className="table-card">
                 <div className="card-header">
                     <div>
-                        <h2>
-                            Trip History
-                        </h2>
+                        <h2>Trip History</h2>
 
                         <p>
                             {trips.length}{" "}
@@ -502,41 +500,15 @@ function Trips() {
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>
-                                        Trip
-                                    </th>
-
-                                    <th>
-                                        Route
-                                    </th>
-
-                                    <th>
-                                        Vehicle
-                                    </th>
-
-                                    <th>
-                                        Dates
-                                    </th>
-
-                                    <th>
-                                        Distance
-                                    </th>
-
-                                    <th>
-                                        Fuel
-                                    </th>
-
-                                    <th>
-                                        Cost
-                                    </th>
-
-                                    <th>
-                                        Mileage
-                                    </th>
-
-                                    <th>
-                                        Action
-                                    </th>
+                                    <th>Trip</th>
+                                    <th>Route</th>
+                                    <th>Vehicle</th>
+                                    <th>Dates</th>
+                                    <th>Distance</th>
+                                    <th>Fuel</th>
+                                    <th>Cost</th>
+                                    <th>Mileage</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
 

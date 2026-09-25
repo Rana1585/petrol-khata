@@ -11,6 +11,7 @@ import {
     CartesianGrid,
     Tooltip
 } from "recharts";
+import { apiFetch } from "../api";
 
 function Analytics() {
     const [data, setData] = useState(null);
@@ -30,18 +31,24 @@ function Analytics() {
     useEffect(() => {
         async function loadOptions() {
             try {
-                const [vehiclesResponse, tripsResponse] =
-                    await Promise.all([
-                        fetch("https://petrol-khata.onrender.com/vehicles"),
-                        fetch("https://petrol-khata.onrender.com/trips")
-                    ]);
+                const [
+                    vehiclesResponse,
+                    tripsResponse
+                ] = await Promise.all([
+                    apiFetch("/vehicles"),
+                    apiFetch("/trips")
+                ]);
 
                 if (!vehiclesResponse.ok) {
-                    throw new Error("Failed to load vehicles");
+                    throw new Error(
+                        "Failed to load vehicles"
+                    );
                 }
 
                 if (!tripsResponse.ok) {
-                    throw new Error("Failed to load trips");
+                    throw new Error(
+                        "Failed to load trips"
+                    );
                 }
 
                 const vehicleData =
@@ -51,13 +58,21 @@ function Analytics() {
                     await tripsResponse.json();
 
                 setVehicles(
-                    vehicleData.filter(
+                    (
+                        vehicleData.vehicles ||
+                        vehicleData ||
+                        []
+                    ).filter(
                         (vehicle) =>
                             Number(vehicle.active) === 1
                     )
                 );
 
-                setTrips(tripData);
+                setTrips(
+                    tripData.trips ||
+                    tripData ||
+                    []
+                );
             } catch (err) {
                 setError(err.message);
             }
@@ -77,7 +92,8 @@ function Analytics() {
 
                 setError("");
 
-                const params = new URLSearchParams();
+                const params =
+                    new URLSearchParams();
 
                 if (selectedVehicleId) {
                     params.set(
@@ -96,11 +112,13 @@ function Analytics() {
                 const queryString =
                     params.toString();
 
-                const url = queryString
-                    ? `https://petrol-khata.onrender.com/analytics?${queryString}`
-                    : "https://petrol-khata.onrender.com/analytics";
+                const endpoint =
+                    queryString
+                        ? `/analytics?${queryString}`
+                        : "/analytics";
 
-                const response = await fetch(url);
+                const response =
+                    await apiFetch(endpoint);
 
                 if (!response.ok) {
                     const message =
@@ -108,7 +126,7 @@ function Analytics() {
 
                     throw new Error(
                         message ||
-                            "Failed to load analytics"
+                        "Failed to load analytics"
                     );
                 }
 
@@ -131,15 +149,19 @@ function Analytics() {
     ]);
 
     useEffect(() => {
-        if (!selectedTripId || !selectedVehicleId) {
+        if (
+            !selectedTripId ||
+            !selectedVehicleId
+        ) {
             return;
         }
 
-        const selectedTrip = trips.find(
-            (trip) =>
-                Number(trip.id) ===
-                Number(selectedTripId)
-        );
+        const selectedTrip =
+            trips.find(
+                (trip) =>
+                    Number(trip.id) ===
+                    Number(selectedTripId)
+            );
 
         if (
             selectedTrip &&
@@ -168,8 +190,10 @@ function Analytics() {
             <div className="analytics-page">
                 <div className="page-header">
                     <h1>Analytics</h1>
+
                     <p>
-                        Loading your fuel analytics...
+                        Loading your fuel
+                        analytics...
                     </p>
                 </div>
             </div>
@@ -181,8 +205,10 @@ function Analytics() {
             <div className="analytics-page">
                 <div className="page-header">
                     <h1>Analytics</h1>
+
                     <p>
-                        Unable to load analytics.
+                        Unable to load
+                        analytics.
                     </p>
                 </div>
 
@@ -223,7 +249,10 @@ function Analytics() {
     const tripAnalytics =
         data.tripAnalytics || [];
 
-    function formatNumber(value, decimals = 2) {
+    function formatNumber(
+        value,
+        decimals = 2
+    ) {
         if (
             value === null ||
             value === undefined ||
@@ -249,13 +278,12 @@ function Analytics() {
             return "Rs 0";
         }
 
-        return `Rs ${Number(value).toLocaleString(
-            undefined,
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
-            }
-        )}`;
+        return `Rs ${Number(
+            value
+        ).toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        })}`;
     }
 
     function formatMileage(value) {
@@ -298,8 +326,9 @@ function Analytics() {
                     <h1>Analytics</h1>
 
                     <p>
-                        Understand your fuel spending,
-                        mileage and vehicle performance.
+                        Understand your fuel
+                        spending, mileage and
+                        vehicle performance.
                     </p>
                 </div>
 
@@ -349,7 +378,9 @@ function Analytics() {
 
                     <div className="analytics-filter-controls">
                         <select
-                            value={selectedVehicleId}
+                            value={
+                                selectedVehicleId
+                            }
                             onChange={(event) =>
                                 setSelectedVehicleId(
                                     event.target.value
@@ -372,6 +403,7 @@ function Analytics() {
                                         }
                                     >
                                         {vehicle.name}
+
                                         {vehicle.registration
                                             ? ` — ${vehicle.registration}`
                                             : ""}
@@ -381,7 +413,9 @@ function Analytics() {
                         </select>
 
                         <select
-                            value={selectedTripId}
+                            value={
+                                selectedTripId
+                            }
                             onChange={(event) =>
                                 setSelectedTripId(
                                     event.target.value
@@ -396,8 +430,12 @@ function Analytics() {
                             {availableTrips.map(
                                 (trip) => (
                                     <option
-                                        key={trip.id}
-                                        value={trip.id}
+                                        key={
+                                            trip.id
+                                        }
+                                        value={
+                                            trip.id
+                                        }
                                     >
                                         {trip.name} —{" "}
                                         {
@@ -435,9 +473,12 @@ function Analytics() {
                     selectedTrip) && (
                     <div className="analytics-filter-summary">
                         Showing analytics for{" "}
+
                         {selectedVehicle && (
                             <strong>
-                                {selectedVehicle.name}
+                                {
+                                    selectedVehicle.name
+                                }
                             </strong>
                         )}
 
@@ -484,7 +525,9 @@ function Analytics() {
 
                 <div className="dashboard-stats">
                     <div className="stat-card">
-                        <span>Total Spending</span>
+                        <span>
+                            Total Spending
+                        </span>
 
                         <strong>
                             {formatMoney(
@@ -516,7 +559,9 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>Average Mileage</span>
+                        <span>
+                            Average Mileage
+                        </span>
 
                         <strong>
                             {formatMileage(
@@ -550,12 +595,13 @@ function Analytics() {
                             fontSize: "14px"
                         }}
                     >
-                        See where your fuel money is
-                        going over time.
+                        See where your fuel money
+                        is going over time.
                     </p>
                 </div>
 
                 <div className="analytics-grid">
+
                     <div className="analytics-card">
                         <div
                             style={{
@@ -687,6 +733,7 @@ function Analytics() {
                             )}
                         </div>
                     </div>
+
                 </div>
             </section>
 
@@ -741,7 +788,8 @@ function Analytics() {
                     </div>
 
                     <div className="chart-container">
-                        {mileageTrend.length > 0 ? (
+                        {mileageTrend.length >
+                        0 ? (
                             <ResponsiveContainer
                                 width="100%"
                                 height={320}
@@ -775,9 +823,7 @@ function Analytics() {
                                         type="monotone"
                                         dataKey="mileage"
                                         name="Mileage"
-                                        strokeWidth={
-                                            2
-                                        }
+                                        strokeWidth={2}
                                         dot={{
                                             r: 3
                                         }}
@@ -812,7 +858,8 @@ function Analytics() {
                         </div>
                     </div>
 
-                    {mileageByVehicle.length > 0 ? (
+                    {mileageByVehicle.length >
+                    0 ? (
                         <div className="vehicle-efficiency-grid">
                             {mileageByVehicle.map(
                                 (vehicle) => {
@@ -937,7 +984,8 @@ function Analytics() {
                         </div>
                     ) : (
                         <div className="analytics-empty-panel">
-                            No mileage data available.
+                            No mileage data
+                            available.
                         </div>
                     )}
                 </div>
@@ -966,19 +1014,23 @@ function Analytics() {
                             fontSize: "14px"
                         }}
                     >
-                        Compare the distance, fuel and
-                        cost of your trips.
+                        Compare the distance,
+                        fuel and cost of your
+                        trips.
                     </p>
                 </div>
 
                 <div className="analytics-card trip-performance-card">
-                    {tripAnalytics.length > 0 ? (
+                    {tripAnalytics.length >
+                    0 ? (
                         <div className="trip-performance-list">
                             {tripAnalytics.map(
                                 (trip) => (
                                     <div
                                         className="trip-performance-item"
-                                        key={trip.id}
+                                        key={
+                                            trip.id
+                                        }
                                     >
                                         <div className="trip-performance-main">
                                             <div className="trip-performance-title">
@@ -1060,7 +1112,7 @@ function Analytics() {
 
                                                 <strong>
                                                     {trip.distance >
-                                                        0
+                                                    0
                                                         ? formatMoney(
                                                               Number(
                                                                   trip.totalCost
@@ -1079,7 +1131,8 @@ function Analytics() {
                         </div>
                     ) : (
                         <div className="analytics-empty-panel">
-                            No trip data available.
+                            No trip data
+                            available.
                         </div>
                     )}
                 </div>
@@ -1108,8 +1161,8 @@ function Analytics() {
                             fontSize: "14px"
                         }}
                     >
-                        Track how petrol prices have
-                        changed over time.
+                        Track how petrol prices
+                        have changed over time.
                     </p>
                 </div>
 
@@ -1150,9 +1203,7 @@ function Analytics() {
                                         type="monotone"
                                         dataKey="price"
                                         name="Petrol Price"
-                                        strokeWidth={
-                                            2
-                                        }
+                                        strokeWidth={2}
                                         dot={{
                                             r: 3
                                         }}
@@ -1185,14 +1236,16 @@ function Analytics() {
                             fontSize: "14px"
                         }}
                     >
-                        A quick summary of the selected
-                        data.
+                        A quick summary of the
+                        selected data.
                     </p>
                 </div>
 
                 <div className="dashboard-stats">
                     <div className="stat-card">
-                        <span>Fuel Entries</span>
+                        <span>
+                            Fuel Entries
+                        </span>
 
                         <strong>
                             {formatNumber(
@@ -1203,7 +1256,9 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>Average Fuel Cost</span>
+                        <span>
+                            Average Fuel Cost
+                        </span>
 
                         <strong>
                             {summary.averageFuelCost !==
@@ -1229,7 +1284,9 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>Best Mileage</span>
+                        <span>
+                            Best Mileage
+                        </span>
 
                         <strong>
                             {formatMileage(
@@ -1239,7 +1296,9 @@ function Analytics() {
                     </div>
 
                     <div className="stat-card">
-                        <span>Lowest Mileage</span>
+                        <span>
+                            Lowest Mileage
+                        </span>
 
                         <strong>
                             {formatMileage(
@@ -1265,7 +1324,8 @@ function EmptyState() {
                 fontSize: "14px"
             }}
         >
-            No data available for this selection.
+            No data available for this
+            selection.
         </div>
     );
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-const API_BASE_URL = "https://petrol-khata.onrender.com";
+import { apiFetch } from "../api";
 
 function Vehicles() {
     const [vehicles, setVehicles] = useState([]);
@@ -41,10 +40,11 @@ function Vehicles() {
         try {
             setLoading(true);
 
-            const [vehiclesResponse, maintenanceResponse] = await Promise.all([
-                fetch(`${API_BASE_URL}/vehicles`),
-                fetch(`${API_BASE_URL}/vehicle-maintenance`),
-            ]);
+            const [vehiclesResponse, maintenanceResponse] =
+                await Promise.all([
+                    apiFetch("/vehicles"),
+                    apiFetch("/vehicle-maintenance"),
+                ]);
 
             if (!vehiclesResponse.ok) {
                 throw new Error("Failed to load vehicles");
@@ -55,16 +55,25 @@ function Vehicles() {
             }
 
             const vehiclesData = await vehiclesResponse.json();
-            const maintenanceData = await maintenanceResponse.json();
+            const maintenanceData =
+                await maintenanceResponse.json();
 
-            setVehicles(vehiclesData.vehicles || vehiclesData || []);
+            setVehicles(
+                vehiclesData.vehicles ||
+                    vehiclesData ||
+                    []
+            );
+
             setMaintenance(
                 maintenanceData.maintenance ||
                     maintenanceData ||
                     []
             );
         } catch (error) {
-            console.error("Failed to load vehicle data:", error);
+            console.error(
+                "Failed to load vehicle data:",
+                error
+            );
         } finally {
             setLoading(false);
         }
@@ -74,7 +83,7 @@ function Vehicles() {
         event.preventDefault();
 
         try {
-            const response = await fetch(`${API_BASE_URL}/vehicles`, {
+            const response = await apiFetch("/vehicles", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -95,7 +104,11 @@ function Vehicles() {
 
             await loadData();
         } catch (error) {
-            console.error("Failed to add vehicle:", error);
+            console.error(
+                "Failed to add vehicle:",
+                error
+            );
+
             alert("Failed to add vehicle.");
         }
     }
@@ -104,19 +117,23 @@ function Vehicles() {
         event.preventDefault();
 
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/vehicle-maintenance`,
+            const response = await apiFetch(
+                "/vehicle-maintenance",
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(maintenanceForm),
+                    body: JSON.stringify(
+                        maintenanceForm
+                    ),
                 }
             );
 
             if (!response.ok) {
-                throw new Error("Failed to add maintenance record");
+                throw new Error(
+                    "Failed to add maintenance record"
+                );
             }
 
             setMaintenanceForm({
@@ -138,8 +155,14 @@ function Vehicles() {
 
             await loadData();
         } catch (error) {
-            console.error("Failed to add maintenance:", error);
-            alert("Failed to add maintenance record.");
+            console.error(
+                "Failed to add maintenance:",
+                error
+            );
+
+            alert(
+                "Failed to add maintenance record."
+            );
         }
     }
 
@@ -151,21 +174,29 @@ function Vehicles() {
         if (!confirmed) return;
 
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/vehicles/${vehicleId}`,
+            const response = await apiFetch(
+                `/vehicles/${vehicleId}`,
                 {
                     method: "DELETE",
                 }
             );
 
             if (!response.ok) {
-                throw new Error("Failed to deactivate vehicle");
+                throw new Error(
+                    "Failed to deactivate vehicle"
+                );
             }
 
             await loadData();
         } catch (error) {
-            console.error("Failed to deactivate vehicle:", error);
-            alert("Failed to deactivate vehicle.");
+            console.error(
+                "Failed to deactivate vehicle:",
+                error
+            );
+
+            alert(
+                "Failed to deactivate vehicle."
+            );
         }
     }
 
@@ -177,24 +208,32 @@ function Vehicles() {
         if (!confirmed) return;
 
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/vehicles/${vehicleId}/permanent`,
+            const response = await apiFetch(
+                `/vehicles/${vehicleId}/permanent`,
                 {
                     method: "DELETE",
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => null);
+                const errorData =
+                    await response
+                        .json()
+                        .catch(() => null);
 
                 throw new Error(
-                    errorData?.error || "Failed to permanently delete vehicle"
+                    errorData?.error ||
+                        "Failed to permanently delete vehicle"
                 );
             }
 
             await loadData();
         } catch (error) {
-            console.error("Failed to permanently delete vehicle:", error);
+            console.error(
+                "Failed to permanently delete vehicle:",
+                error
+            );
+
             alert(
                 error.message ||
                     "Failed to permanently delete vehicle."
@@ -204,22 +243,37 @@ function Vehicles() {
 
     function getVehicleMaintenance(vehicleId) {
         return maintenance.filter(
-            (record) => Number(record.vehicleId) === Number(vehicleId)
+            (record) =>
+                Number(record.vehicleId) ===
+                Number(vehicleId)
         );
     }
 
     function getMaintenanceTotal(vehicleId) {
-        const records = getVehicleMaintenance(vehicleId);
+        const records =
+            getVehicleMaintenance(vehicleId);
 
-        return records.reduce((total, record) => {
-            return (
-                total +
-                Number(record.mobileOilCost || 0) +
-                Number(record.oilFilterCost || 0) +
-                Number(record.airFilterCost || 0) +
-                Number(record.otherMaintenanceCost || 0)
-            );
-        }, 0);
+        return records.reduce(
+            (total, record) => {
+                return (
+                    total +
+                    Number(
+                        record.mobileOilCost || 0
+                    ) +
+                    Number(
+                        record.oilFilterCost || 0
+                    ) +
+                    Number(
+                        record.airFilterCost || 0
+                    ) +
+                    Number(
+                        record.otherMaintenanceCost ||
+                            0
+                    )
+                );
+            },
+            0
+        );
     }
 
     function openMaintenanceForm(vehicle) {
@@ -227,7 +281,9 @@ function Vehicles() {
 
         setMaintenanceForm({
             vehicleId: vehicle.id,
-            date: new Date().toISOString().split("T")[0],
+            date: new Date()
+                .toISOString()
+                .split("T")[0],
             meterReading: "",
             mobileOil: "",
             mobileOilCost: "",
@@ -256,9 +312,10 @@ function Vehicles() {
             <div className="page-header">
                 <div>
                     <h1>Vehicles</h1>
+
                     <p>
-                        Manage your vehicles and keep track of their
-                        maintenance.
+                        Manage your vehicles and keep
+                        track of their maintenance.
                     </p>
                 </div>
 
@@ -266,7 +323,9 @@ function Vehicles() {
                     <button
                         type="button"
                         className="primary-button"
-                        onClick={() => setShowVehicleForm(true)}
+                        onClick={() =>
+                            setShowVehicleForm(true)
+                        }
                     >
                         Add Vehicle
                     </button>
@@ -276,7 +335,9 @@ function Vehicles() {
                         className="secondary-button"
                         onClick={() => {
                             setSelectedVehicle(null);
-                            setShowMaintenanceForm(true);
+                            setShowMaintenanceForm(
+                                true
+                            );
                         }}
                     >
                         Add Maintenance
@@ -292,13 +353,19 @@ function Vehicles() {
                         <button
                             type="button"
                             className="close-button"
-                            onClick={() => setShowVehicleForm(false)}
+                            onClick={() =>
+                                setShowVehicleForm(
+                                    false
+                                )
+                            }
                         >
                             ×
                         </button>
                     </div>
 
-                    <form onSubmit={handleAddVehicle}>
+                    <form
+                        onSubmit={handleAddVehicle}
+                    >
                         <div className="form-grid">
                             <div className="form-group">
                                 <label htmlFor="vehicle-name">
@@ -308,11 +375,15 @@ function Vehicles() {
                                 <input
                                     id="vehicle-name"
                                     type="text"
-                                    value={vehicleForm.name}
+                                    value={
+                                        vehicleForm.name
+                                    }
                                     onChange={(event) =>
                                         setVehicleForm({
                                             ...vehicleForm,
-                                            name: event.target.value,
+                                            name: event
+                                                .target
+                                                .value,
                                         })
                                     }
                                     placeholder="e.g. Honda Civic"
@@ -328,12 +399,16 @@ function Vehicles() {
                                 <input
                                     id="vehicle-registration"
                                     type="text"
-                                    value={vehicleForm.registration}
+                                    value={
+                                        vehicleForm.registration
+                                    }
                                     onChange={(event) =>
                                         setVehicleForm({
                                             ...vehicleForm,
                                             registration:
-                                                event.target.value,
+                                                event
+                                                    .target
+                                                    .value,
                                         })
                                     }
                                     placeholder="e.g. ABC-123"
@@ -347,7 +422,9 @@ function Vehicles() {
                                 type="button"
                                 className="secondary-button"
                                 onClick={() =>
-                                    setShowVehicleForm(false)
+                                    setShowVehicleForm(
+                                        false
+                                    )
                                 }
                             >
                                 Cancel
@@ -368,12 +445,21 @@ function Vehicles() {
                 <section className="form-card">
                     <div className="section-header">
                         <div>
-                            <h2>Add Maintenance Record</h2>
+                            <h2>
+                                Add Maintenance Record
+                            </h2>
 
                             {selectedVehicle && (
                                 <p>
-                                    Vehicle: {selectedVehicle.name} (
-                                    {selectedVehicle.registration})
+                                    Vehicle:{" "}
+                                    {
+                                        selectedVehicle.name
+                                    }{" "}
+                                    (
+                                    {
+                                        selectedVehicle.registration
+                                    }
+                                    )
                                 </p>
                             )}
                         </div>
@@ -382,14 +468,20 @@ function Vehicles() {
                             type="button"
                             className="close-button"
                             onClick={() =>
-                                setShowMaintenanceForm(false)
+                                setShowMaintenanceForm(
+                                    false
+                                )
                             }
                         >
                             ×
                         </button>
                     </div>
 
-                    <form onSubmit={handleAddMaintenance}>
+                    <form
+                        onSubmit={
+                            handleAddMaintenance
+                        }
+                    >
                         <div className="form-grid">
                             <div className="form-group">
                                 <label htmlFor="maintenance-vehicle">
@@ -398,13 +490,19 @@ function Vehicles() {
 
                                 <select
                                     id="maintenance-vehicle"
-                                    value={maintenanceForm.vehicleId}
+                                    value={
+                                        maintenanceForm.vehicleId
+                                    }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            vehicleId:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                vehicleId:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                     required
                                 >
@@ -415,18 +513,32 @@ function Vehicles() {
                                     {vehicles
                                         .filter(
                                             (vehicle) =>
-                                                Number(vehicle.active) !==
-                                                0
+                                                Number(
+                                                    vehicle.active
+                                                ) !== 0
                                         )
-                                        .map((vehicle) => (
-                                            <option
-                                                key={vehicle.id}
-                                                value={vehicle.id}
-                                            >
-                                                {vehicle.name} -{" "}
-                                                {vehicle.registration}
-                                            </option>
-                                        ))}
+                                        .map(
+                                            (
+                                                vehicle
+                                            ) => (
+                                                <option
+                                                    key={
+                                                        vehicle.id
+                                                    }
+                                                    value={
+                                                        vehicle.id
+                                                    }
+                                                >
+                                                    {
+                                                        vehicle.name
+                                                    }{" "}
+                                                    -{" "}
+                                                    {
+                                                        vehicle.registration
+                                                    }
+                                                </option>
+                                            )
+                                        )}
                                 </select>
                             </div>
 
@@ -438,12 +550,18 @@ function Vehicles() {
                                 <input
                                     id="maintenance-date"
                                     type="date"
-                                    value={maintenanceForm.date}
+                                    value={
+                                        maintenanceForm.date
+                                    }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            date: event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                date: event
+                                                    .target
+                                                    .value,
+                                            }
+                                        )
                                     }
                                     required
                                 />
@@ -461,11 +579,15 @@ function Vehicles() {
                                         maintenanceForm.meterReading
                                     }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            meterReading:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                meterReading:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -478,13 +600,19 @@ function Vehicles() {
                                 <input
                                     id="mobile-oil"
                                     type="text"
-                                    value={maintenanceForm.mobileOil}
+                                    value={
+                                        maintenanceForm.mobileOil
+                                    }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            mobileOil:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                mobileOil:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                     placeholder="e.g. Total Quartz 9000"
                                 />
@@ -502,11 +630,15 @@ function Vehicles() {
                                         maintenanceForm.mobileOilCost
                                     }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            mobileOilCost:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                mobileOilCost:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -519,13 +651,19 @@ function Vehicles() {
                                 <input
                                     id="oil-filter"
                                     type="text"
-                                    value={maintenanceForm.oilFilter}
+                                    value={
+                                        maintenanceForm.oilFilter
+                                    }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            oilFilter:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                oilFilter:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -542,11 +680,15 @@ function Vehicles() {
                                         maintenanceForm.oilFilterCost
                                     }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            oilFilterCost:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                oilFilterCost:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -559,13 +701,19 @@ function Vehicles() {
                                 <input
                                     id="air-filter"
                                     type="text"
-                                    value={maintenanceForm.airFilter}
+                                    value={
+                                        maintenanceForm.airFilter
+                                    }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            airFilter:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                airFilter:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -582,11 +730,15 @@ function Vehicles() {
                                         maintenanceForm.airFilterCost
                                     }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            airFilterCost:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                airFilterCost:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -603,11 +755,15 @@ function Vehicles() {
                                         maintenanceForm.otherMaintenance
                                     }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            otherMaintenance:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                otherMaintenance:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                     placeholder="e.g. Brake service"
                                 />
@@ -625,11 +781,15 @@ function Vehicles() {
                                         maintenanceForm.otherMaintenanceCost
                                     }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            otherMaintenanceCost:
-                                                event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                otherMaintenanceCost:
+                                                    event
+                                                        .target
+                                                        .value,
+                                            }
+                                        )
                                     }
                                 />
                             </div>
@@ -641,12 +801,18 @@ function Vehicles() {
 
                                 <textarea
                                     id="maintenance-notes"
-                                    value={maintenanceForm.notes}
+                                    value={
+                                        maintenanceForm.notes
+                                    }
                                     onChange={(event) =>
-                                        setMaintenanceForm({
-                                            ...maintenanceForm,
-                                            notes: event.target.value,
-                                        })
+                                        setMaintenanceForm(
+                                            {
+                                                ...maintenanceForm,
+                                                notes: event
+                                                    .target
+                                                    .value,
+                                            }
+                                        )
                                     }
                                     placeholder="Any additional notes..."
                                     rows="3"
@@ -659,7 +825,9 @@ function Vehicles() {
                                 type="button"
                                 className="secondary-button"
                                 onClick={() =>
-                                    setShowMaintenanceForm(false)
+                                    setShowMaintenanceForm(
+                                        false
+                                    )
                                 }
                             >
                                 Cancel
@@ -680,9 +848,12 @@ function Vehicles() {
                 <div className="section-header">
                     <div>
                         <h2>Your Vehicles</h2>
+
                         <p>
                             {vehicles.length} vehicle
-                            {vehicles.length !== 1 ? "s" : ""}
+                            {vehicles.length !== 1
+                                ? "s"
+                                : ""}
                         </p>
                     </div>
                 </div>
@@ -690,22 +861,30 @@ function Vehicles() {
                 {vehicles.length === 0 ? (
                     <div className="empty-state">
                         <h3>No vehicles yet</h3>
+
                         <p>
-                            Add your first vehicle to start tracking fuel
-                            and maintenance.
+                            Add your first vehicle to
+                            start tracking fuel and
+                            maintenance.
                         </p>
                     </div>
                 ) : (
                     <div className="vehicles-grid">
                         {vehicles.map((vehicle) => {
                             const vehicleMaintenance =
-                                getVehicleMaintenance(vehicle.id);
+                                getVehicleMaintenance(
+                                    vehicle.id
+                                );
 
                             const maintenanceTotal =
-                                getMaintenanceTotal(vehicle.id);
+                                getMaintenanceTotal(
+                                    vehicle.id
+                                );
 
                             const isActive =
-                                Number(vehicle.active) !== 0;
+                                Number(
+                                    vehicle.active
+                                ) !== 0;
 
                             return (
                                 <article
@@ -714,10 +893,16 @@ function Vehicles() {
                                 >
                                     <div className="vehicle-card-header">
                                         <div>
-                                            <h3>{vehicle.name}</h3>
+                                            <h3>
+                                                {
+                                                    vehicle.name
+                                                }
+                                            </h3>
 
                                             <p>
-                                                {vehicle.registration}
+                                                {
+                                                    vehicle.registration
+                                                }
                                             </p>
                                         </div>
 
@@ -737,7 +922,8 @@ function Vehicles() {
                                     <div className="vehicle-card-stats">
                                         <div>
                                             <span>
-                                                Maintenance Records
+                                                Maintenance
+                                                Records
                                             </span>
 
                                             <strong>
@@ -749,7 +935,8 @@ function Vehicles() {
 
                                         <div>
                                             <span>
-                                                Maintenance Cost
+                                                Maintenance
+                                                Cost
                                             </span>
 
                                             <strong>

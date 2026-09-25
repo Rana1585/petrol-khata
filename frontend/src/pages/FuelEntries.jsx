@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../api";
 
 function FuelEntries() {
     const [entries, setEntries] = useState([]);
@@ -29,28 +30,52 @@ function FuelEntries() {
             setLoading(true);
             setError("");
 
-            const [entriesResponse, vehiclesResponse, tripsResponse] =
-                await Promise.all([
-                    fetch("https://petrol-khata.onrender.com/entries"),
-                    fetch("https://petrol-khata.onrender.com/vehicles"),
-                    fetch("https://petrol-khata.onrender.com/trips"),
-                ]);
+            const [
+                entriesResponse,
+                vehiclesResponse,
+                tripsResponse,
+            ] = await Promise.all([
+                apiFetch("/entries"),
+                apiFetch("/vehicles"),
+                apiFetch("/trips"),
+            ]);
 
             if (
                 !entriesResponse.ok ||
                 !vehiclesResponse.ok ||
                 !tripsResponse.ok
             ) {
-                throw new Error("Failed to load fuel data");
+                throw new Error(
+                    "Failed to load fuel data"
+                );
             }
 
-            const entriesData = await entriesResponse.json();
-            const vehiclesData = await vehiclesResponse.json();
-            const tripsData = await tripsResponse.json();
+            const entriesData =
+                await entriesResponse.json();
 
-            setEntries(entriesData.entries || entriesData || []);
-            setVehicles(vehiclesData.vehicles || vehiclesData || []);
-            setTrips(tripsData.trips || tripsData || []);
+            const vehiclesData =
+                await vehiclesResponse.json();
+
+            const tripsData =
+                await tripsResponse.json();
+
+            setEntries(
+                entriesData.entries ||
+                    entriesData ||
+                    []
+            );
+
+            setVehicles(
+                vehiclesData.vehicles ||
+                    vehiclesData ||
+                    []
+            );
+
+            setTrips(
+                tripsData.trips ||
+                    tripsData ||
+                    []
+            );
         } catch (err) {
             setError(err.message);
         } finally {
@@ -86,20 +111,23 @@ function FuelEntries() {
             setSaving(true);
             setError("");
 
-            const response = await fetch(
-                "https://petrol-khata.onrender.com/entries",
+            const response = await apiFetch(
+                "/entries",
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type":
+                            "application/json",
                     },
                     body: JSON.stringify({
-                        vehicleId: Number(form.vehicleId),
+                        vehicleId:
+                            Number(form.vehicleId),
                         date: form.date,
                         pumpName: form.pumpName,
                         price: Number(form.price),
                         litres: Number(form.litres),
-                        odometer: Number(form.odometer),
+                        odometer:
+                            Number(form.odometer),
                         tripId: form.tripId
                             ? Number(form.tripId)
                             : null,
@@ -107,16 +135,19 @@ function FuelEntries() {
                 }
             );
 
-            const result = await response.json();
+            const result =
+                await response.json();
 
             if (!response.ok) {
                 throw new Error(
-                    result.error || "Failed to add fuel entry"
+                    result.error ||
+                        "Failed to add fuel entry"
                 );
             }
 
             resetForm();
             setShowForm(false);
+
             await loadData();
         } catch (err) {
             setError(err.message);
@@ -137,18 +168,20 @@ function FuelEntries() {
         try {
             setError("");
 
-            const response = await fetch(
-                `https://petrol-khata.onrender.com/entries/${id}`,
+            const response = await apiFetch(
+                `/entries/${id}`,
                 {
                     method: "DELETE",
                 }
             );
 
-            const result = await response.json();
+            const result =
+                await response.json();
 
             if (!response.ok) {
                 throw new Error(
-                    result.error || "Failed to delete entry"
+                    result.error ||
+                        "Failed to delete entry"
                 );
             }
 
@@ -174,7 +207,8 @@ function FuelEntries() {
                 <div>
                     <h1>Fuel Entries</h1>
                     <p>
-                        Record and manage every fuel purchase.
+                        Record and manage every fuel
+                        purchase.
                     </p>
                 </div>
 
@@ -182,7 +216,9 @@ function FuelEntries() {
                     <button
                         className="primary-button"
                         onClick={() =>
-                            setShowForm((current) => !current)
+                            setShowForm(
+                                (current) => !current
+                            )
                         }
                     >
                         {showForm
@@ -204,8 +240,8 @@ function FuelEntries() {
                         <div>
                             <h2>Add Fuel Entry</h2>
                             <p>
-                                Enter the raw fuel and odometer
-                                information.
+                                Enter the raw fuel and
+                                odometer information.
                             </p>
                         </div>
                     </div>
@@ -223,8 +259,12 @@ function FuelEntries() {
                                 <select
                                     id="vehicleId"
                                     name="vehicleId"
-                                    value={form.vehicleId}
-                                    onChange={handleChange}
+                                    value={
+                                        form.vehicleId
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     required
                                 >
                                     <option value="">
@@ -234,19 +274,30 @@ function FuelEntries() {
                                     {vehicles
                                         .filter(
                                             (vehicle) =>
-                                                vehicle.active !== 0
+                                                vehicle.active !==
+                                                0
                                         )
-                                        .map((vehicle) => (
-                                            <option
-                                                key={vehicle.id}
-                                                value={vehicle.id}
-                                            >
-                                                {vehicle.name}
-                                                {vehicle.registration
-                                                    ? ` (${vehicle.registration})`
-                                                    : ""}
-                                            </option>
-                                        ))}
+                                        .map(
+                                            (
+                                                vehicle
+                                            ) => (
+                                                <option
+                                                    key={
+                                                        vehicle.id
+                                                    }
+                                                    value={
+                                                        vehicle.id
+                                                    }
+                                                >
+                                                    {
+                                                        vehicle.name
+                                                    }
+                                                    {vehicle.registration
+                                                        ? ` (${vehicle.registration})`
+                                                        : ""}
+                                                </option>
+                                            )
+                                        )}
                                 </select>
                             </div>
 
@@ -260,7 +311,9 @@ function FuelEntries() {
                                     type="date"
                                     name="date"
                                     value={form.date}
-                                    onChange={handleChange}
+                                    onChange={
+                                        handleChange
+                                    }
                                     required
                                 />
                             </div>
@@ -275,8 +328,12 @@ function FuelEntries() {
                                     type="text"
                                     name="pumpName"
                                     placeholder="e.g. PSO Canal Road"
-                                    value={form.pumpName}
-                                    onChange={handleChange}
+                                    value={
+                                        form.pumpName
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     required
                                 />
                             </div>
@@ -294,7 +351,9 @@ function FuelEntries() {
                                     step="0.01"
                                     placeholder="275"
                                     value={form.price}
-                                    onChange={handleChange}
+                                    onChange={
+                                        handleChange
+                                    }
                                     required
                                 />
                             </div>
@@ -311,8 +370,12 @@ function FuelEntries() {
                                     min="0"
                                     step="0.01"
                                     placeholder="30"
-                                    value={form.litres}
-                                    onChange={handleChange}
+                                    value={
+                                        form.litres
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     required
                                 />
                             </div>
@@ -329,8 +392,12 @@ function FuelEntries() {
                                     min="0"
                                     step="0.1"
                                     placeholder="50000"
-                                    value={form.odometer}
-                                    onChange={handleChange}
+                                    value={
+                                        form.odometer
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
                                     required
                                 />
                             </div>
@@ -344,20 +411,30 @@ function FuelEntries() {
                                     id="tripId"
                                     name="tripId"
                                     value={form.tripId}
-                                    onChange={handleChange}
+                                    onChange={
+                                        handleChange
+                                    }
                                 >
                                     <option value="">
                                         No trip
                                     </option>
 
-                                    {trips.map((trip) => (
-                                        <option
-                                            key={trip.id}
-                                            value={trip.id}
-                                        >
-                                            {trip.name}
-                                        </option>
-                                    ))}
+                                    {trips.map(
+                                        (trip) => (
+                                            <option
+                                                key={
+                                                    trip.id
+                                                }
+                                                value={
+                                                    trip.id
+                                                }
+                                            >
+                                                {
+                                                    trip.name
+                                                }
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
                         </div>
@@ -368,7 +445,9 @@ function FuelEntries() {
                                 className="secondary-button"
                                 onClick={() => {
                                     resetForm();
-                                    setShowForm(false);
+                                    setShowForm(
+                                        false
+                                    );
                                 }}
                             >
                                 Cancel
@@ -413,7 +492,9 @@ function FuelEntries() {
                                 <tr>
                                     <th>Date</th>
                                     <th>Vehicle</th>
-                                    <th>Petrol Pump</th>
+                                    <th>
+                                        Petrol Pump
+                                    </th>
                                     <th>Price / L</th>
                                     <th>Litres</th>
                                     <th>Total</th>
@@ -426,95 +507,116 @@ function FuelEntries() {
                             </thead>
 
                             <tbody>
-                                {entries.map((entry) => (
-                                    <tr key={entry.id}>
-                                        <td>
-                                            {entry.date}
-                                        </td>
+                                {entries.map(
+                                    (entry) => (
+                                        <tr
+                                            key={
+                                                entry.id
+                                            }
+                                        >
+                                            <td>
+                                                {
+                                                    entry.date
+                                                }
+                                            </td>
 
-                                        <td>
-                                            <strong>
-                                                {entry.vehicleName ||
-                                                    "—"}
-                                            </strong>
+                                            <td>
+                                                <strong>
+                                                    {entry.vehicleName ||
+                                                        "—"}
+                                                </strong>
 
-                                            {entry.vehicleRegistration && (
-                                                <div className="table-subtext">
-                                                    {
-                                                        entry.vehicleRegistration
-                                                    }
-                                                </div>
-                                            )}
-                                        </td>
+                                                {entry.vehicleRegistration && (
+                                                    <div className="table-subtext">
+                                                        {
+                                                            entry.vehicleRegistration
+                                                        }
+                                                    </div>
+                                                )}
+                                            </td>
 
-                                        <td>
-                                            {entry.pumpName}
-                                        </td>
+                                            <td>
+                                                {
+                                                    entry.pumpName
+                                                }
+                                            </td>
 
-                                        <td>
-                                            Rs{" "}
-                                            {Number(
-                                                entry.price || 0
-                                            ).toLocaleString()}
-                                        </td>
-
-                                        <td>
-                                            {Number(
-                                                entry.litres || 0
-                                            ).toFixed(2)}
-                                        </td>
-
-                                        <td>
-                                            <strong>
+                                            <td>
                                                 Rs{" "}
                                                 {Number(
-                                                    entry.totalPrice ||
+                                                    entry.price ||
                                                         0
                                                 ).toLocaleString()}
-                                            </strong>
-                                        </td>
+                                            </td>
 
-                                        <td>
-                                            {Number(
-                                                entry.odometer || 0
-                                            ).toLocaleString()}
-                                        </td>
+                                            <td>
+                                                {Number(
+                                                    entry.litres ||
+                                                        0
+                                                ).toFixed(
+                                                    2
+                                                )}
+                                            </td>
 
-                                        <td>
-                                            {entry.distance != null
-                                                ? `${Number(
-                                                      entry.distance
-                                                  ).toFixed(0)} km`
-                                                : "—"}
-                                        </td>
+                                            <td>
+                                                <strong>
+                                                    Rs{" "}
+                                                    {Number(
+                                                        entry.totalPrice ||
+                                                            0
+                                                    ).toLocaleString()}
+                                                </strong>
+                                            </td>
 
-                                        <td>
-                                            {entry.mileage != null
-                                                ? `${Number(
-                                                      entry.mileage
-                                                  ).toFixed(2)} km/L`
-                                                : "—"}
-                                        </td>
+                                            <td>
+                                                {Number(
+                                                    entry.odometer ||
+                                                        0
+                                                ).toLocaleString()}
+                                            </td>
 
-                                        <td>
-                                            {entry.tripName ||
-                                                "—"}
-                                        </td>
+                                            <td>
+                                                {entry.distance !=
+                                                null
+                                                    ? `${Number(
+                                                          entry.distance
+                                                      ).toFixed(
+                                                          0
+                                                      )} km`
+                                                    : "—"}
+                                            </td>
 
-                                        <td>
-                                            <button
-                                                className="delete-button"
-                                                onClick={() =>
-                                                    handleDelete(
-                                                        entry.id
-                                                    )
-                                                }
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            <td>
+                                                {entry.mileage !=
+                                                null
+                                                    ? `${Number(
+                                                          entry.mileage
+                                                      ).toFixed(
+                                                          2
+                                                      )} km/L`
+                                                    : "—"}
+                                            </td>
+
+                                            <td>
+                                                {entry.tripName ||
+                                                    "—"}
+                                            </td>
+
+                                            <td>
+                                                <button
+                                                    className="delete-button"
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            entry.id
+                                                        )
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
                             </tbody>
                         </table>
                     </div>

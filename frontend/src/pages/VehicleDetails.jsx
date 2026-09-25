@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { apiFetch } from "../api";
 
 function VehicleDetails() {
     const { id } = useParams();
@@ -20,11 +21,9 @@ function VehicleDetails() {
                 entriesResponse,
                 maintenanceResponse,
             ] = await Promise.all([
-                fetch("https://petrol-khata.onrender.com/vehicles"),
-                fetch("https://petrol-khata.onrender.com/entries"),
-                fetch(
-                    "https://petrol-khata.onrender.com/vehicle-maintenance"
-                ),
+                apiFetch("/vehicles"),
+                apiFetch("/entries"),
+                apiFetch("/vehicle-maintenance"),
             ]);
 
             const vehiclesData =
@@ -112,26 +111,18 @@ function VehicleDetails() {
         0
     );
 
+    const mileageEntries = entries.filter(
+        (entry) =>
+            Number(entry.mileage) > 0
+    );
+
     const averageMileage =
-        entries.filter(
-            (entry) =>
-                Number(entry.mileage) > 0
-        ).length > 0
-            ? entries
-                  .filter(
-                      (entry) =>
-                          Number(entry.mileage) > 0
-                  )
-                  .reduce(
-                      (total, entry) =>
-                          total +
-                          Number(entry.mileage),
-                      0
-                  ) /
-              entries.filter(
-                  (entry) =>
-                      Number(entry.mileage) > 0
-              ).length
+        mileageEntries.length > 0
+            ? mileageEntries.reduce(
+                  (total, entry) =>
+                      total + Number(entry.mileage),
+                  0
+              ) / mileageEntries.length
             : 0;
 
     const totalMaintenanceCost =
@@ -289,72 +280,56 @@ function VehicleDetails() {
                             </thead>
 
                             <tbody>
-                                {entries.map(
-                                    (entry) => (
-                                        <tr
-                                            key={
-                                                entry.id
-                                            }
-                                        >
-                                            <td>
-                                                {
-                                                    entry.date
-                                                }
-                                            </td>
+                                {entries.map((entry) => (
+                                    <tr key={entry.id}>
+                                        <td>{entry.date}</td>
 
-                                            <td>
-                                                {
-                                                    entry.pumpName
-                                                }
-                                            </td>
+                                        <td>
+                                            {entry.pumpName}
+                                        </td>
 
-                                            <td>
-                                                {formatMoney(
-                                                    entry.price
-                                                )}
-                                            </td>
+                                        <td>
+                                            {formatMoney(
+                                                entry.price
+                                            )}
+                                        </td>
 
-                                            <td>
-                                                {Number(
-                                                    entry.litres
-                                                ).toFixed(
-                                                    2
-                                                )}{" "}
-                                                L
-                                            </td>
+                                        <td>
+                                            {Number(
+                                                entry.litres
+                                            ).toFixed(2)}{" "}
+                                            L
+                                        </td>
 
-                                            <td>
-                                                {formatMoney(
-                                                    entry.totalPrice
-                                                )}
-                                            </td>
+                                        <td>
+                                            {formatMoney(
+                                                entry.totalPrice
+                                            )}
+                                        </td>
 
-                                            <td>
-                                                {Number(
-                                                    entry.odometer
-                                                ).toLocaleString()}
-                                            </td>
+                                        <td>
+                                            {Number(
+                                                entry.odometer
+                                            ).toLocaleString()}
+                                        </td>
 
-                                            <td>
-                                                {entry.distance
-                                                    ? `${Number(
-                                                          entry.distance
-                                                      ).toLocaleString()} km`
-                                                    : "—"}
-                                            </td>
+                                        <td>
+                                            {entry.distance
+                                                ? `${Number(
+                                                      entry.distance
+                                                  ).toLocaleString()} km`
+                                                : "—"}
+                                        </td>
 
-                                            <td>
-                                                {entry.mileage
-                                                    ? `${Number(
-                                                          entry.mileage
-                                                      ).toFixed(
-                                                          2
-                                                      )} km/L`
-                                                    : "—"}
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
+                                        <td>
+                                            {entry.mileage
+                                                ? `${Number(
+                                                      entry.mileage
+                                                  ).toFixed(2)} km/L`
+                                                : "—"}
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
@@ -397,88 +372,77 @@ function VehicleDetails() {
                             </thead>
 
                             <tbody>
-                                {maintenance.map(
-                                    (item) => (
-                                        <tr
-                                            key={
-                                                item.id
-                                            }
-                                        >
-                                            <td>
-                                                {
-                                                    item.date
-                                                }
-                                            </td>
+                                {maintenance.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>{item.date}</td>
 
-                                            <td>
-                                                {Number(
-                                                    item.meterReading
-                                                ).toLocaleString()}
-                                            </td>
+                                        <td>
+                                            {Number(
+                                                item.meterReading
+                                            ).toLocaleString()}
+                                        </td>
 
-                                            <td>
-                                                <div>
-                                                    {item.mobileOil && (
-                                                        <div>
-                                                            <strong>
-                                                                Oil:
-                                                            </strong>{" "}
-                                                            {
-                                                                item.mobileOil
-                                                            }
-                                                        </div>
-                                                    )}
+                                        <td>
+                                            <div>
+                                                {item.mobileOil && (
+                                                    <div>
+                                                        <strong>
+                                                            Oil:
+                                                        </strong>{" "}
+                                                        {
+                                                            item.mobileOil
+                                                        }
+                                                    </div>
+                                                )}
 
-                                                    {item.oilFilter && (
-                                                        <div>
-                                                            <strong>
-                                                                Oil Filter:
-                                                            </strong>{" "}
-                                                            {
-                                                                item.oilFilter
-                                                            }
-                                                        </div>
-                                                    )}
+                                                {item.oilFilter && (
+                                                    <div>
+                                                        <strong>
+                                                            Oil Filter:
+                                                        </strong>{" "}
+                                                        {
+                                                            item.oilFilter
+                                                        }
+                                                    </div>
+                                                )}
 
-                                                    {item.airFilter && (
-                                                        <div>
-                                                            <strong>
-                                                                Air Filter:
-                                                            </strong>{" "}
-                                                            {
-                                                                item.airFilter
-                                                            }
-                                                        </div>
-                                                    )}
+                                                {item.airFilter && (
+                                                    <div>
+                                                        <strong>
+                                                            Air Filter:
+                                                        </strong>{" "}
+                                                        {
+                                                            item.airFilter
+                                                        }
+                                                    </div>
+                                                )}
 
-                                                    {item.otherMaintenance && (
-                                                        <div>
-                                                            <strong>
-                                                                Other:
-                                                            </strong>{" "}
-                                                            {
-                                                                item.otherMaintenance
-                                                            }
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
+                                                {item.otherMaintenance && (
+                                                    <div>
+                                                        <strong>
+                                                            Other:
+                                                        </strong>{" "}
+                                                        {
+                                                            item.otherMaintenance
+                                                        }
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
 
-                                            <td>
-                                                <strong>
-                                                    {formatMoney(
-                                                        item.totalCost
-                                                    )}
-                                                </strong>
-                                            </td>
+                                        <td>
+                                            <strong>
+                                                {formatMoney(
+                                                    item.totalCost
+                                                )}
+                                            </strong>
+                                        </td>
 
-                                            <td>
-                                                {item.notes ||
-                                                    "—"}
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
+                                        <td>
+                                            {item.notes || "—"}
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
