@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import supabase from "../supabase";
@@ -10,12 +11,14 @@ function Signup() {
     const [confirmPassword, setConfirmPassword] =
         useState("");
     const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
 
     async function handleSignup(event) {
         event.preventDefault();
 
         setError("");
+        setMessage("");
 
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
@@ -31,10 +34,11 @@ function Signup() {
 
         setLoading(true);
 
-        const { error } = await supabase.auth.signUp({
-            email,
-            password,
-        });
+        const { data, error } =
+            await supabase.auth.signUp({
+                email,
+                password,
+            });
 
         if (error) {
             setError(error.message);
@@ -42,7 +46,16 @@ function Signup() {
             return;
         }
 
-        navigate("/");
+        if (data.session) {
+            navigate("/");
+            return;
+        }
+
+        setMessage(
+            "Account created. Please check your email and click the confirmation link to verify your account."
+        );
+
+        setLoading(false);
     }
 
     return (
@@ -102,6 +115,12 @@ function Signup() {
                     {error && (
                         <div className="auth-error">
                             {error}
+                        </div>
+                    )}
+
+                    {message && (
+                        <div className="auth-success">
+                            {message}
                         </div>
                     )}
 

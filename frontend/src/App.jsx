@@ -1,3 +1,4 @@
+
 import {
     BrowserRouter,
     Routes,
@@ -15,6 +16,7 @@ import VehicleDetails from "./pages/VehicleDetails";
 import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+
 import { supabase } from "./supabase";
 
 function NotFound() {
@@ -140,6 +142,7 @@ function App() {
                     path="/signup"
                     element={<Signup />}
                 />
+
 
                 <Route
                     path="*"
