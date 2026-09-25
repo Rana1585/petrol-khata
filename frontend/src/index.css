@@ -218,6 +218,29 @@ a {
     font-size: 10px;
 }
 
+.logout-button {
+    margin-top: 12px;
+
+    width: 100%;
+
+    padding: 9px 12px;
+
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #344054;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background: #f9fafb;
+}
+
 
 /* =========================================================
    MAIN CONTENT
@@ -395,6 +418,8 @@ a {
    ========================================================= */
 
 .primary-button {
+    min-height: 42px;
+
     padding: 10px 16px;
 
     border-radius: 8px;
@@ -421,6 +446,8 @@ a {
 }
 
 .secondary-button {
+    min-height: 42px;
+
     padding: 10px 16px;
 
     border-radius: 8px;
@@ -441,6 +468,8 @@ a {
 }
 
 .danger-button {
+    min-height: 42px;
+
     padding: 10px 16px;
 
     border-radius: 8px;
@@ -501,6 +530,8 @@ a {
 .form-group textarea {
     width: 100%;
 
+    min-height: 42px;
+
     padding: 10px 12px;
 
     border: 1px solid #d0d5dd;
@@ -547,6 +578,8 @@ a {
     width: 100%;
 
     overflow-x: auto;
+
+    -webkit-overflow-scrolling: touch;
 }
 
 .analytics-table,
@@ -768,6 +801,8 @@ a {
 .analytics-select {
     min-width: 190px;
 
+    min-height: 42px;
+
     padding: 10px 12px;
 
     border-radius: 8px;
@@ -794,6 +829,8 @@ a {
 }
 
 .analytics-clear-button {
+    min-height: 42px;
+
     padding: 10px 14px;
 
     border-radius: 8px;
@@ -1493,7 +1530,7 @@ a {
    RESPONSIVE — TABLET
    ========================================================= */
 
-@media (max-width: 1000px) {
+@media (max-width: 1000px) and (min-width: 769px) {
     .sidebar {
         width: 220px;
     }
@@ -1545,37 +1582,103 @@ a {
    ========================================================= */
 
 @media (max-width: 768px) {
+
+    /* -----------------------------------------------------
+       APP
+       ----------------------------------------------------- */
+
+    .app {
+        min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+
+    /* -----------------------------------------------------
+       MOBILE HEADER
+       ----------------------------------------------------- */
+
     .sidebar {
         position: relative;
 
-        width: 100%;
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
 
+        width: 100%;
         min-height: auto;
+
+        display: block;
 
         border-right: none;
         border-bottom: 1px solid #eaecf0;
+
+        background: #ffffff;
     }
 
     .sidebar-brand {
-        min-height: 68px;
+        min-height: 64px;
 
         padding: 0 16px;
+
+        display: flex;
+
+        gap: 10px;
     }
 
+    .sidebar-logo {
+        width: 34px;
+        height: 34px;
+
+        border-radius: 9px;
+
+        font-size: 17px;
+    }
+
+    .sidebar-brand h2 {
+        font-size: 15px;
+    }
+
+    .sidebar-brand span {
+        margin-top: 2px;
+
+        font-size: 10px;
+    }
+
+
+    /* -----------------------------------------------------
+       MOBILE NAVIGATION
+       ----------------------------------------------------- */
+
     .sidebar-nav {
-        padding: 12px 12px 14px;
+        width: 100%;
+
+        padding: 8px 10px 10px;
 
         overflow-x: auto;
         overflow-y: hidden;
+
+        -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: none;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .sidebar-section {
+        width: max-content;
+
+        min-width: 100%;
+
+        display: flex;
+
         flex-direction: row;
         align-items: center;
 
         gap: 4px;
-
-        min-width: max-content;
     }
 
     .sidebar-section-title {
@@ -1585,17 +1688,71 @@ a {
     .sidebar-link {
         width: auto;
 
+        min-height: 40px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 6px;
+
+        padding: 8px 12px;
+
+        border-radius: 8px;
+
         white-space: nowrap;
 
-        padding: 9px 11px;
+        font-size: 12px;
     }
 
-   .sidebar-footer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-}
+    .sidebar-icon {
+        width: auto;
+
+        font-size: 14px;
+    }
+
+    .sidebar-link.active {
+        background: #101828;
+        color: #ffffff;
+    }
+
+
+    /* -----------------------------------------------------
+       MOBILE FOOTER / LOGOUT
+       ----------------------------------------------------- */
+
+    .sidebar-footer {
+        display: flex;
+        align-items: center;
+
+        gap: 10px;
+
+        padding: 10px 16px;
+
+        border-top: 1px solid #eaecf0;
+    }
+
+    .sidebar-footer span,
+    .sidebar-footer small {
+        display: none;
+    }
+
+    .logout-button {
+        width: auto;
+
+        min-height: 36px;
+
+        margin: 0 0 0 auto;
+
+        padding: 7px 12px;
+
+        font-size: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       MAIN CONTENT
+       ----------------------------------------------------- */
 
     .main-content {
         width: 100%;
@@ -1604,86 +1761,471 @@ a {
 
         margin-left: 0;
 
-        padding: 24px 16px 40px;
+        padding: 22px 14px 40px;
     }
+
+
+    /* -----------------------------------------------------
+       PAGE HEADER
+       ----------------------------------------------------- */
 
     .page-header {
         flex-direction: column;
 
-        gap: 10px;
+        align-items: stretch;
+
+        gap: 14px;
+
+        margin-bottom: 20px;
     }
 
     .page-header h1 {
-        font-size: 26px;
+        font-size: 24px;
+
+        letter-spacing: -0.025em;
     }
 
+    .page-header p {
+        margin-top: 5px;
+
+        font-size: 13px;
+    }
+
+    .page-header .primary-button,
+    .page-header .secondary-button,
+    .page-header .danger-button {
+        width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       CARDS
+       ----------------------------------------------------- */
+
+    .card,
+    .dashboard-card,
+    .analytics-card,
+    .stat-card,
+    .vehicle-card,
+    .trip-card,
+    .record-card,
+    .settings-card {
+        border-radius: 10px;
+    }
+
+
+    /* -----------------------------------------------------
+       DASHBOARD
+       ----------------------------------------------------- */
+
+    .dashboard-header {
+        margin-bottom: 20px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+
+        margin-top: 16px;
+    }
+
+    .dashboard-card {
+        padding: 16px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 15px;
+    }
+
+
+    /* -----------------------------------------------------
+       STATS
+       ----------------------------------------------------- */
+
     .dashboard-stats {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 10px;
+    }
+
+    .stat-card {
+        min-height: 96px;
+
+        padding: 14px;
+    }
+
+    .stat-card span {
+        font-size: 11px;
+    }
+
+    .stat-card strong {
+        margin-top: 10px;
+
+        font-size: 18px;
+    }
+
+
+    /* -----------------------------------------------------
+       BUTTONS
+       ----------------------------------------------------- */
+
+    .primary-button,
+    .secondary-button,
+    .danger-button {
+        min-height: 44px;
+
+        padding: 10px 14px;
+
+        font-size: 13px;
+    }
+
+
+    /* -----------------------------------------------------
+       FORMS
+       ----------------------------------------------------- */
+
+    .form {
+        gap: 14px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+
+        gap: 14px;
+    }
+
+    .form-group.full-width {
+        grid-column: auto;
+    }
+
+    .form-group {
+        gap: 6px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        min-height: 44px;
+
+        padding: 10px 12px;
+
+        border-radius: 8px;
+
+        font-size: 14px;
+    }
+
+    .form-group textarea {
+        min-height: 110px;
+    }
+
+    .form-actions {
+        width: 100%;
+
+        flex-direction: column;
+
+        gap: 8px;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       TABLES
+       ----------------------------------------------------- */
+
+    .table-container {
+        margin-right: -2px;
+
+        border-radius: 8px;
+    }
+
+    .analytics-table,
+    .data-table {
+        min-width: 620px;
+    }
+
+    .analytics-table th,
+    .analytics-table td,
+    .data-table th,
+    .data-table td {
+        padding: 11px 12px;
+    }
+
+    .analytics-table th,
+    .data-table th {
+        font-size: 10px;
+    }
+
+    .analytics-table td,
+    .data-table td {
+        font-size: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       ANALYTICS
+       ----------------------------------------------------- */
+
+    .analytics-section {
+        margin-bottom: 24px;
+    }
+
+    .analytics-section-header {
+        margin-bottom: 12px;
+    }
+
+    .analytics-section-header h2 {
+        font-size: 18px;
+    }
+
+    .analytics-section-header p {
+        font-size: 12px;
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
 
         gap: 12px;
     }
 
-    .stat-card {
-        padding: 16px;
-
-        min-height: 105px;
-    }
-
-    .stat-card strong {
-        font-size: 20px;
-    }
-
     .analytics-overview {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 10px;
+    }
+
+    .analytics-stat {
+        padding: 14px;
+    }
+
+    .analytics-stat-label {
+        font-size: 11px;
+    }
+
+    .analytics-stat-value {
+        margin-top: 7px;
+
+        font-size: 19px;
+    }
+
+    .analytics-stat-description {
+        font-size: 11px;
+    }
+
+    .analytics-stat-icon {
+        width: 30px;
+        height: 30px;
     }
 
     .analytics-insights {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 10px;
+    }
+
+    .analytics-insight {
+        padding: 14px;
+    }
+
+    .analytics-insight-label {
+        font-size: 11px;
+    }
+
+    .analytics-insight-value {
+        font-size: 18px;
+    }
+
+    .analytics-insight-description {
+        font-size: 11px;
     }
 
     .analytics-highlights {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 10px;
     }
 
+
+    /* -----------------------------------------------------
+       ANALYTICS FILTERS
+       ----------------------------------------------------- */
+
     .analytics-filter-layout {
+        width: 100%;
+
         align-items: stretch;
+
+        gap: 12px;
     }
 
     .analytics-filter-controls {
         width: 100%;
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 8px;
     }
 
     .analytics-select,
-    .analytics-trip-select {
-        flex: 1;
+    .analytics-trip-select,
+    .analytics-clear-button {
+        width: 100%;
 
         min-width: 0;
+
+        min-height: 44px;
+    }
+
+    .analytics-filter-summary {
+        margin-top: 12px;
+
+        padding-top: 12px;
+
+        font-size: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       CHARTS
+       ----------------------------------------------------- */
+
+    .chart-container {
+        min-height: 260px;
+
+        padding: 12px 8px 16px;
+    }
+
+    .chart-container .recharts-cartesian-axis-tick-value {
+        font-size: 9px;
+    }
+
+
+    /* -----------------------------------------------------
+       VEHICLE EFFICIENCY
+       ----------------------------------------------------- */
+
+    .analytics-card-heading {
+        padding: 16px 16px 4px;
+    }
+
+    .analytics-card-heading h3 {
+        font-size: 16px;
+    }
+
+    .analytics-card-heading p {
+        font-size: 12px;
     }
 
     .vehicle-efficiency-grid {
         grid-template-columns: 1fr;
 
-        padding: 14px;
+        gap: 10px;
+
+        padding: 12px;
     }
 
+    .vehicle-efficiency-item {
+        padding: 15px;
+
+        border-radius: 10px;
+    }
+
+    .vehicle-efficiency-top {
+        gap: 10px;
+
+        margin-bottom: 16px;
+    }
+
+    .vehicle-efficiency-top h4 {
+        font-size: 15px;
+    }
+
+    .vehicle-efficiency-top span {
+        font-size: 11px;
+    }
+
+    .vehicle-average strong {
+        font-size: 21px;
+    }
+
+    .vehicle-average small {
+        font-size: 11px;
+    }
+
+    .vehicle-efficiency-label {
+        font-size: 11px;
+    }
+
+    .vehicle-efficiency-comparison {
+        gap: 8px;
+
+        margin-top: 15px;
+
+        padding-top: 13px;
+    }
+
+    .vehicle-efficiency-comparison span {
+        font-size: 10px;
+    }
+
+    .vehicle-efficiency-comparison strong {
+        font-size: 13px;
+    }
+
+
+    /* -----------------------------------------------------
+       TRIP PERFORMANCE
+       ----------------------------------------------------- */
+
     .trip-performance-item {
-        padding: 18px;
+        padding: 16px;
     }
 
     .trip-performance-main {
-        align-items: flex-start;
-
         flex-direction: column;
 
-        gap: 12px;
+        align-items: flex-start;
+
+        gap: 10px;
+
+        margin-bottom: 14px;
+    }
+
+    .trip-performance-title h3 {
+        font-size: 15px;
+    }
+
+    .trip-performance-title span {
+        font-size: 12px;
     }
 
     .trip-performance-mileage {
         text-align: left;
     }
 
+    .trip-performance-mileage span {
+        font-size: 10px;
+    }
+
+    .trip-performance-mileage strong {
+        font-size: 17px;
+    }
+
     .trip-performance-metrics {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .trip-metric {
+        padding: 11px 12px;
     }
 
     .trip-metric:nth-child(2) {
@@ -1694,16 +2236,122 @@ a {
         border-bottom: 1px solid #eaecf0;
     }
 
-    .form-grid {
-        grid-template-columns: 1fr;
+    .trip-metric span {
+        font-size: 10px;
     }
 
-    .form-group.full-width {
-        grid-column: auto;
+    .trip-metric strong {
+        font-size: 13px;
+    }
+
+
+    /* -----------------------------------------------------
+       VEHICLES
+       ----------------------------------------------------- */
+
+    .vehicle-grid {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+    .vehicle-card {
+        padding: 16px;
+    }
+
+    .vehicle-card-header {
+        gap: 10px;
+    }
+
+    .vehicle-card h3 {
+        font-size: 16px;
+    }
+
+    .vehicle-registration {
+        font-size: 12px;
+    }
+
+    .vehicle-status {
+        padding: 4px 8px;
+
+        font-size: 10px;
+    }
+
+
+    /* -----------------------------------------------------
+       TRIPS
+       ----------------------------------------------------- */
+
+    .trip-card {
+        padding: 16px;
+    }
+
+    .trip-card h3 {
+        font-size: 15px;
+    }
+
+    .trip-route {
+        font-size: 12px;
     }
 
     .trip-details {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 8px;
+
+        margin-top: 14px;
+    }
+
+    .trip-detail {
+        padding: 10px;
+    }
+
+    .trip-detail span {
+        font-size: 10px;
+    }
+
+    .trip-detail strong {
+        font-size: 13px;
+    }
+
+
+    /* -----------------------------------------------------
+       RECORDS
+       ----------------------------------------------------- */
+
+    .record-grid {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+    .record-card {
+        padding: 15px;
+    }
+
+    .record-card h3 {
+        font-size: 15px;
+    }
+
+    .record-card p {
+        font-size: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       STATES
+       ----------------------------------------------------- */
+
+    .empty-state {
+        padding: 32px 16px;
+
+        font-size: 13px;
+    }
+
+    .loading-container {
+        min-height: 200px;
+
+        font-size: 13px;
     }
 }
 
@@ -1713,12 +2361,9 @@ a {
    ========================================================= */
 
 @media (max-width: 480px) {
-    .main-content {
-        padding: 20px 12px 32px;
-    }
 
     .sidebar-brand {
-        padding: 0 12px;
+        padding: 0 14px;
     }
 
     .sidebar-nav {
@@ -1726,46 +2371,90 @@ a {
         padding-right: 8px;
     }
 
-    .dashboard-stats {
-        grid-template-columns: 1fr;
+    .sidebar-link {
+        padding: 8px 10px;
+
+        font-size: 11px;
     }
 
-    .analytics-overview {
-        grid-template-columns: 1fr;
+    .sidebar-icon {
+        font-size: 13px;
     }
 
-    .analytics-insights {
-        grid-template-columns: 1fr;
+    .sidebar-footer {
+        padding: 9px 14px;
     }
 
-    .analytics-highlights {
-        grid-template-columns: 1fr;
+    .main-content {
+        padding: 18px 12px 32px;
     }
 
-    .analytics-filter-controls {
-        flex-direction: column;
-    }
-
-    .analytics-select,
-    .analytics-trip-select,
-    .analytics-clear-button {
-        width: 100%;
-    }
-
-    .vehicle-efficiency-item {
-        padding: 16px;
-    }
-
-    .vehicle-efficiency-top {
-        gap: 10px;
-    }
-
-    .vehicle-average strong {
+    .page-header h1 {
         font-size: 22px;
     }
 
-    .vehicle-efficiency-comparison {
+    .page-header p {
+        font-size: 12px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr 1fr;
+
         gap: 8px;
+    }
+
+    .stat-card {
+        min-height: 88px;
+
+        padding: 12px;
+    }
+
+    .stat-card span {
+        font-size: 10px;
+    }
+
+    .stat-card strong {
+        font-size: 17px;
+    }
+
+    .analytics-overview {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .analytics-insights {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .analytics-highlights {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .analytics-stat {
+        padding: 12px;
+    }
+
+    .analytics-stat-value {
+        font-size: 17px;
+    }
+
+    .analytics-insight {
+        padding: 12px;
+    }
+
+    .analytics-insight-value {
+        font-size: 17px;
+    }
+
+    .vehicle-efficiency-item {
+        padding: 14px;
+    }
+
+    .vehicle-efficiency-top {
+        gap: 8px;
+    }
+
+    .vehicle-average strong {
+        font-size: 19px;
     }
 
     .trip-performance-metrics {
@@ -1794,23 +2483,34 @@ a {
     .form-actions button {
         width: 100%;
     }
+
+    .analytics-table,
+    .data-table {
+        min-width: 560px;
+    }
 }
 
 
 /* =========================================================
-   REDUCED MOTION
+   TOUCH DEVICES
    ========================================================= */
 
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
+@media (hover: none) and (pointer: coarse) {
+    .sidebar-link,
+    .primary-button,
+    .secondary-button,
+    .danger-button,
+    .analytics-clear-button,
+    .logout-button {
+        -webkit-tap-highlight-color: transparent;
+    }
 
-        transition-duration: 0.01ms !important;
-
-        animation-duration: 0.01ms !important;
-
-        animation-iteration-count: 1 !important;
+    .sidebar-link:hover,
+    .primary-button:hover,
+    .secondary-button:hover,
+    .danger-button:hover,
+    .analytics-clear-button:hover,
+    .logout-button:hover {
+        transform: none;
     }
 }
