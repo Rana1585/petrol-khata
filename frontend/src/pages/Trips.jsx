@@ -496,87 +496,223 @@ function Trips() {
                         No trips yet.
                     </div>
                 ) : (
-                    <div className="table-wrapper">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Trip</th>
-                                    <th>Route</th>
-                                    <th>Vehicle</th>
-                                    <th>Dates</th>
-                                    <th>Distance</th>
-                                    <th>Fuel</th>
-                                    <th>Cost</th>
-                                    <th>Mileage</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+                    <>
+                        {/* Desktop */}
+                        <div className="table-wrapper trips-desktop-table">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Trip</th>
+                                        <th>Route</th>
+                                        <th>Vehicle</th>
+                                        <th>Dates</th>
+                                        <th>Distance</th>
+                                        <th>Fuel</th>
+                                        <th>Cost</th>
+                                        <th>Mileage</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {trips.map(
-                                    (trip) => (
-                                        <tr
-                                            key={
-                                                trip.id
-                                            }
-                                        >
-                                            <td>
-                                                <strong>
-                                                    {
-                                                        trip.name
-                                                    }
-                                                </strong>
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    trip.startLocation
-                                                }{" "}
-                                                →{" "}
-                                                {
-                                                    trip.destination
+                                <tbody>
+                                    {trips.map(
+                                        (trip) => (
+                                            <tr
+                                                key={
+                                                    trip.id
                                                 }
-                                            </td>
+                                            >
+                                                <td>
+                                                    <strong>
+                                                        {
+                                                            trip.name
+                                                        }
+                                                    </strong>
+                                                </td>
 
-                                            <td>
+                                                <td>
+                                                    {
+                                                        trip.startLocation
+                                                    }{" "}
+                                                    →{" "}
+                                                    {
+                                                        trip.destination
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        trip.vehicleName
+                                                    }
+
+                                                    {trip.vehicleRegistration && (
+                                                        <div className="table-subtext">
+                                                            {
+                                                                trip.vehicleRegistration
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        trip.startDate
+                                                    }
+
+                                                    {trip.endDate && (
+                                                        <div className="table-subtext">
+                                                            to{" "}
+                                                            {
+                                                                trip.endDate
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    {trip.distance !=
+                                                    null
+                                                        ? `${formatNumber(
+                                                              trip.distance
+                                                          )} km`
+                                                        : "—"}
+                                                </td>
+
+                                                <td>
+                                                    {trip.totalFuel !=
+                                                    null
+                                                        ? `${Number(
+                                                              trip.totalFuel
+                                                          ).toFixed(
+                                                              1
+                                                          )} L`
+                                                        : "—"}
+                                                </td>
+
+                                                <td>
+                                                    {trip.totalCost !=
+                                                    null
+                                                        ? `Rs ${Number(
+                                                              trip.totalCost
+                                                          ).toLocaleString()}`
+                                                        : "—"}
+                                                </td>
+
+                                                <td>
+                                                    {trip.mileage !=
+                                                    null
+                                                        ? `${Number(
+                                                              trip.mileage
+                                                          ).toFixed(
+                                                              2
+                                                          )} km/L`
+                                                        : "—"}
+                                                </td>
+
+                                                <td>
+                                                    <button
+                                                        className="delete-button"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                trip.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile */}
+                        <div className="trips-mobile-list">
+                            {trips.map((trip) => (
+                                <article
+                                    className="mobile-data-card"
+                                    key={trip.id}
+                                >
+                                    <div className="mobile-card-top">
+                                        <div>
+                                            <strong className="mobile-trip-name">
+                                                {trip.name ||
+                                                    "Unnamed trip"}
+                                            </strong>
+
+                                            <span className="mobile-card-muted">
                                                 {
                                                     trip.vehicleName
                                                 }
 
-                                                {trip.vehicleRegistration && (
-                                                    <div className="table-subtext">
-                                                        {
-                                                            trip.vehicleRegistration
-                                                        }
-                                                    </div>
-                                                )}
-                                            </td>
+                                                {trip.vehicleRegistration
+                                                    ? ` • ${trip.vehicleRegistration}`
+                                                    : ""}
+                                            </span>
+                                        </div>
+                                    </div>
 
-                                            <td>
-                                                {
-                                                    trip.startDate
-                                                }
+                                    <div className="mobile-trip-route">
+                                        <span>
+                                            {trip.startLocation ||
+                                                "—"}
+                                        </span>
 
-                                                {trip.endDate && (
-                                                    <div className="table-subtext">
-                                                        to{" "}
-                                                        {
-                                                            trip.endDate
-                                                        }
-                                                    </div>
-                                                )}
-                                            </td>
+                                        <span className="route-arrow">
+                                            →
+                                        </span>
 
-                                            <td>
+                                        <span>
+                                            {trip.destination ||
+                                                "—"}
+                                        </span>
+                                    </div>
+
+                                    <div className="mobile-trip-dates">
+                                        <span>
+                                            {trip.startDate ||
+                                                "—"}
+                                        </span>
+
+                                        {trip.endDate && (
+                                            <>
+                                                <span>
+                                                    →
+                                                </span>
+
+                                                <span>
+                                                    {
+                                                        trip.endDate
+                                                    }
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="mobile-card-grid">
+                                        <div>
+                                            <span>
+                                                Distance
+                                            </span>
+
+                                            <strong>
                                                 {trip.distance !=
                                                 null
                                                     ? `${formatNumber(
                                                           trip.distance
                                                       )} km`
                                                     : "—"}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Fuel
+                                            </span>
+
+                                            <strong>
                                                 {trip.totalFuel !=
                                                 null
                                                     ? `${Number(
@@ -585,18 +721,30 @@ function Trips() {
                                                           1
                                                       )} L`
                                                     : "—"}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Cost
+                                            </span>
+
+                                            <strong className="mobile-card-total">
                                                 {trip.totalCost !=
                                                 null
                                                     ? `Rs ${Number(
                                                           trip.totalCost
                                                       ).toLocaleString()}`
                                                     : "—"}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Mileage
+                                            </span>
+
+                                            <strong>
                                                 {trip.mileage !=
                                                 null
                                                     ? `${Number(
@@ -605,26 +753,24 @@ function Trips() {
                                                           2
                                                       )} km/L`
                                                     : "—"}
-                                            </td>
+                                            </strong>
+                                        </div>
+                                    </div>
 
-                                            <td>
-                                                <button
-                                                    className="delete-button"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            trip.id
-                                                        )
-                                                    }
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    <button
+                                        className="delete-button mobile-delete-button"
+                                        onClick={() =>
+                                            handleDelete(
+                                                trip.id
+                                            )
+                                        }
+                                    >
+                                        Delete Trip
+                                    </button>
+                                </article>
+                            ))}
+                        </div>
+                    </>
                 )}
             </section>
         </main>

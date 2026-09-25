@@ -206,6 +206,7 @@ function FuelEntries() {
             <div className="page-header">
                 <div>
                     <h1>Fuel Entries</h1>
+
                     <p>
                         Record and manage every fuel
                         purchase.
@@ -239,6 +240,7 @@ function FuelEntries() {
                     <div className="card-header">
                         <div>
                             <h2>Add Fuel Entry</h2>
+
                             <p>
                                 Enter the raw fuel and
                                 odometer information.
@@ -471,6 +473,7 @@ function FuelEntries() {
                 <div className="card-header">
                     <div>
                         <h2>Fuel History</h2>
+
                         <p>
                             {entries.length}{" "}
                             {entries.length === 1
@@ -486,96 +489,244 @@ function FuelEntries() {
                         No fuel entries yet.
                     </div>
                 ) : (
-                    <div className="table-wrapper">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Vehicle</th>
-                                    <th>
-                                        Petrol Pump
-                                    </th>
-                                    <th>Price / L</th>
-                                    <th>Litres</th>
-                                    <th>Total</th>
-                                    <th>Odometer</th>
-                                    <th>Distance</th>
-                                    <th>Mileage</th>
-                                    <th>Trip</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+                    <>
+                        {/* Desktop */}
+                        <div className="table-wrapper fuel-desktop-table">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Vehicle</th>
+                                        <th>
+                                            Petrol Pump
+                                        </th>
+                                        <th>Price / L</th>
+                                        <th>Litres</th>
+                                        <th>Total</th>
+                                        <th>Odometer</th>
+                                        <th>Distance</th>
+                                        <th>Mileage</th>
+                                        <th>Trip</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {entries.map(
-                                    (entry) => (
-                                        <tr
-                                            key={
-                                                entry.id
-                                            }
-                                        >
-                                            <td>
-                                                {
-                                                    entry.date
+                                <tbody>
+                                    {entries.map(
+                                        (entry) => (
+                                            <tr
+                                                key={
+                                                    entry.id
                                                 }
-                                            </td>
+                                            >
+                                                <td>
+                                                    {
+                                                        entry.date
+                                                    }
+                                                </td>
 
-                                            <td>
-                                                <strong>
-                                                    {entry.vehicleName ||
+                                                <td>
+                                                    <strong>
+                                                        {entry.vehicleName ||
+                                                            "—"}
+                                                    </strong>
+
+                                                    {entry.vehicleRegistration && (
+                                                        <div className="table-subtext">
+                                                            {
+                                                                entry.vehicleRegistration
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        entry.pumpName
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    Rs{" "}
+                                                    {Number(
+                                                        entry.price ||
+                                                            0
+                                                    ).toLocaleString()}
+                                                </td>
+
+                                                <td>
+                                                    {Number(
+                                                        entry.litres ||
+                                                            0
+                                                    ).toFixed(
+                                                        2
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    <strong>
+                                                        Rs{" "}
+                                                        {Number(
+                                                            entry.totalPrice ||
+                                                                0
+                                                        ).toLocaleString()}
+                                                    </strong>
+                                                </td>
+
+                                                <td>
+                                                    {Number(
+                                                        entry.odometer ||
+                                                            0
+                                                    ).toLocaleString()}
+                                                </td>
+
+                                                <td>
+                                                    {entry.distance !=
+                                                    null
+                                                        ? `${Number(
+                                                              entry.distance
+                                                          ).toFixed(
+                                                              0
+                                                          )} km`
+                                                        : "—"}
+                                                </td>
+
+                                                <td>
+                                                    {entry.mileage !=
+                                                    null
+                                                        ? `${Number(
+                                                              entry.mileage
+                                                          ).toFixed(
+                                                              2
+                                                          )} km/L`
+                                                        : "—"}
+                                                </td>
+
+                                                <td>
+                                                    {entry.tripName ||
                                                         "—"}
-                                                </strong>
+                                                </td>
 
-                                                {entry.vehicleRegistration && (
-                                                    <div className="table-subtext">
-                                                        {
-                                                            entry.vehicleRegistration
+                                                <td>
+                                                    <button
+                                                        className="delete-button"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                entry.id
+                                                            )
                                                         }
-                                                    </div>
-                                                )}
-                                            </td>
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
-                                            <td>
-                                                {
-                                                    entry.pumpName
-                                                }
-                                            </td>
+                        {/* Mobile */}
+                        <div className="fuel-mobile-list">
+                            {entries.map((entry) => (
+                                <article
+                                    className="mobile-data-card"
+                                    key={entry.id}
+                                >
+                                    <div className="mobile-card-top">
+                                        <div>
+                                            <strong>
+                                                {entry.vehicleName ||
+                                                    "Unknown vehicle"}
+                                            </strong>
 
-                                            <td>
+                                            {entry.vehicleRegistration && (
+                                                <span className="mobile-card-muted">
+                                                    {
+                                                        entry.vehicleRegistration
+                                                    }
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <span className="mobile-card-date">
+                                            {entry.date}
+                                        </span>
+                                    </div>
+
+                                    <div className="mobile-card-main">
+                                        <div>
+                                            <span>
+                                                Petrol Pump
+                                            </span>
+
+                                            <strong>
+                                                {entry.pumpName ||
+                                                    "—"}
+                                            </strong>
+                                        </div>
+
+                                        <div>
+                                            <span>
+                                                Total
+                                            </span>
+
+                                            <strong className="mobile-card-total">
+                                                Rs{" "}
+                                                {Number(
+                                                    entry.totalPrice ||
+                                                        0
+                                                ).toLocaleString()}
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div className="mobile-card-grid">
+                                        <div>
+                                            <span>
+                                                Price / L
+                                            </span>
+                                            <strong>
                                                 Rs{" "}
                                                 {Number(
                                                     entry.price ||
                                                         0
                                                 ).toLocaleString()}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Litres
+                                            </span>
+                                            <strong>
                                                 {Number(
                                                     entry.litres ||
                                                         0
                                                 ).toFixed(
                                                     2
-                                                )}
-                                            </td>
+                                                )}{" "}
+                                                L
+                                            </strong>
+                                        </div>
 
-                                            <td>
-                                                <strong>
-                                                    Rs{" "}
-                                                    {Number(
-                                                        entry.totalPrice ||
-                                                            0
-                                                    ).toLocaleString()}
-                                                </strong>
-                                            </td>
-
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Odometer
+                                            </span>
+                                            <strong>
                                                 {Number(
                                                     entry.odometer ||
                                                         0
                                                 ).toLocaleString()}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Distance
+                                            </span>
+                                            <strong>
                                                 {entry.distance !=
                                                 null
                                                     ? `${Number(
@@ -584,9 +735,14 @@ function FuelEntries() {
                                                           0
                                                       )} km`
                                                     : "—"}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Mileage
+                                            </span>
+                                            <strong>
                                                 {entry.mileage !=
                                                 null
                                                     ? `${Number(
@@ -595,31 +751,34 @@ function FuelEntries() {
                                                           2
                                                       )} km/L`
                                                     : "—"}
-                                            </td>
+                                            </strong>
+                                        </div>
 
-                                            <td>
+                                        <div>
+                                            <span>
+                                                Trip
+                                            </span>
+                                            <strong>
                                                 {entry.tripName ||
-                                                    "—"}
-                                            </td>
+                                                    "No trip"}
+                                            </strong>
+                                        </div>
+                                    </div>
 
-                                            <td>
-                                                <button
-                                                    className="delete-button"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            entry.id
-                                                        )
-                                                    }
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    <button
+                                        className="delete-button mobile-delete-button"
+                                        onClick={() =>
+                                            handleDelete(
+                                                entry.id
+                                            )
+                                        }
+                                    >
+                                        Delete Entry
+                                    </button>
+                                </article>
+                            ))}
+                        </div>
+                    </>
                 )}
             </section>
         </main>
