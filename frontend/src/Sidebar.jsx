@@ -1,14 +1,6 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { supabase } from "./supabase";
+import { NavLink } from "react-router-dom";
 
 function Sidebar() {
-    const navigate = useNavigate();
-
-    async function handleLogout() {
-        await supabase.auth.signOut();
-        navigate("/login");
-    }
-
     return (
         <aside className="sidebar">
             <div className="sidebar-brand">
@@ -97,14 +89,6 @@ function Sidebar() {
                 <small>
                     Personal vehicle manager
                 </small>
-
-                <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="logout-button"
-                >
-                    Log out
-                </button>
             </div>
         </aside>
     );

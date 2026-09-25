@@ -2702,3 +2702,136 @@ a {
         font-size: 12px;
     }
 }
+
+/* Top profile header */
+
+.top-header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 20;
+}
+
+.profile-menu {
+    position: relative;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 5px 10px 5px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #111827;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.profile-button:hover {
+    background: #f8fafc;
+}
+
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f1f5f9;
+    font-size: 16px;
+}
+
+.profile-email {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.profile-arrow {
+    font-size: 9px;
+    color: #6b7280;
+    margin-left: 2px;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 190px;
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+}
+
+.profile-dropdown button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+
+.profile-dropdown button:hover {
+    background: #f3f4f6;
+}
+
+@media (max-width: 768px) {
+    .top-header {
+        height: 56px;
+        padding: 0 14px;
+    }
+
+    .profile-button {
+        min-height: 38px;
+        padding-right: 8px;
+    }
+
+    .profile-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+
+    .profile-email {
+        max-width: 150px;
+        font-size: 12px;
+    }
+
+    .profile-dropdown {
+        width: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-email {
+        max-width: 110px;
+    }
+
+    .profile-button {
+        gap: 6px;
+    }
+}

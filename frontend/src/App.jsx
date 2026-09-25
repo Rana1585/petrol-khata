@@ -1,4 +1,3 @@
-
 import {
     BrowserRouter,
     Routes,
@@ -9,6 +8,8 @@ import {
 import { useEffect, useState } from "react";
 
 import Sidebar from "./Sidebar";
+import ProfileMenu from "./ProfileMenu";
+
 import Vehicles from "./pages/Vehicles";
 import FuelEntries from "./pages/FuelEntries";
 import Trips from "./pages/Trips";
@@ -86,6 +87,12 @@ function ProtectedApp() {
             <Sidebar />
 
             <div className="main-content">
+                <header className="top-header">
+                    <div></div>
+
+                    <ProfileMenu />
+                </header>
+
                 <Routes>
                     <Route
                         path="/"
@@ -142,7 +149,6 @@ function App() {
                     path="/signup"
                     element={<Signup />}
                 />
-
 
                 <Route
                     path="*"
