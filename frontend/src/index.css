@@ -1590,9 +1590,12 @@ a {
         padding: 9px 11px;
     }
 
-    .sidebar-footer {
-        display: none;
-    }
+   .sidebar-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+}
 
     .main-content {
         width: 100%;
