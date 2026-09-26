@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
     ResponsiveContainer,
@@ -187,41 +186,57 @@ function Analytics() {
 
     if (loading && !data) {
         return (
-            <div className="analytics-page">
-                <div className="page-header">
-                    <h1>Analytics</h1>
+            <main className="page analytics-page">
+                <div className="analytics-loading">
+                    <div className="analytics-loading-icon">
+                        <ChartIcon />
+                    </div>
+
+                    <h2>Loading analytics</h2>
 
                     <p>
-                        Loading your fuel
-                        analytics...
+                        Preparing your fuel and
+                        vehicle insights...
                     </p>
                 </div>
-            </div>
+            </main>
         );
     }
 
     if (error && !data) {
         return (
-            <div className="analytics-page">
-                <div className="page-header">
-                    <h1>Analytics</h1>
+            <main className="page analytics-page">
+                <div className="analytics-page-header">
+                    <div>
+                        <span className="analytics-eyebrow">
+                            INSIGHTS
+                        </span>
 
-                    <p>
-                        Unable to load
-                        analytics.
-                    </p>
+                        <h1>Analytics</h1>
+
+                        <p>
+                            Understand your fuel
+                            spending, mileage and
+                            vehicle performance.
+                        </p>
+                    </div>
                 </div>
 
-                <div
-                    className="analytics-card"
-                    style={{
-                        padding: "24px",
-                        color: "#b42318"
-                    }}
-                >
-                    {error}
+                <div className="analytics-error">
+                    <div className="analytics-error-icon">
+                        <AlertIcon />
+                    </div>
+
+                    <div>
+                        <h3>
+                            Unable to load
+                            analytics
+                        </h3>
+
+                        <p>{error}</p>
+                    </div>
                 </div>
-            </div>
+            </main>
         );
     }
 
@@ -312,167 +327,194 @@ function Analytics() {
         );
 
     return (
-        <div className="analytics-page">
+        <main className="page analytics-page">
 
             {/* HEADER */}
 
-            <div
-                className="page-header"
-                style={{
-                    marginBottom: "24px"
-                }}
-            >
+            <div className="analytics-page-header">
                 <div>
-                    <h1>Analytics</h1>
+                    <span className="analytics-eyebrow">
+                        INSIGHTS
+                    </span>
 
-                    <p>
-                        Understand your fuel
-                        spending, mileage and
-                        vehicle performance.
-                    </p>
+                    <div className="analytics-title-row">
+                        <div className="analytics-title-icon">
+                            <ChartIcon />
+                        </div>
+
+                        <div>
+                            <h1>Analytics</h1>
+
+                            <p>
+                                Understand your fuel
+                                spending, mileage and
+                                vehicle performance.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {refreshing && (
-                    <span
-                        style={{
-                            fontSize: "13px",
-                            opacity: 0.65
-                        }}
-                    >
-                        Updating...
-                    </span>
+                    <div className="analytics-refreshing">
+                        <span className="analytics-refresh-dot" />
+                        Updating
+                    </div>
                 )}
             </div>
 
+            {/* ERROR WHILE REFRESHING */}
+
+            {error && data && (
+                <div className="analytics-inline-error">
+                    <AlertIcon />
+                    <span>{error}</span>
+                </div>
+            )}
+
             {/* FILTERS */}
 
-            <div
-                className="analytics-card"
-                style={{
-                    padding: "20px",
-                    marginBottom: "24px"
-                }}
-            >
-                <div className="analytics-filter-layout">
-                    <div>
-                        <h3
-                            style={{
-                                margin: 0,
-                                marginBottom: "5px"
-                            }}
-                        >
-                            Analyse your data
-                        </h3>
+            <section className="analytics-filter-card">
+                <div className="analytics-filter-heading">
+                    <div className="analytics-filter-icon">
+                        <FilterIcon />
+                    </div>
 
-                        <p
-                            style={{
-                                margin: 0,
-                                fontSize: "14px",
-                                opacity: 0.65
-                            }}
-                        >
-                            Choose a vehicle or a
-                            specific trip.
+                    <div>
+                        <h2>
+                            Filter your analytics
+                        </h2>
+
+                        <p>
+                            Focus on a vehicle or
+                            specific trip to explore
+                            detailed performance.
                         </p>
                     </div>
+                </div>
 
-                    <div className="analytics-filter-controls">
-                        <select
-                            value={
-                                selectedVehicleId
-                            }
-                            onChange={(event) =>
-                                setSelectedVehicleId(
-                                    event.target.value
-                                )
-                            }
-                            className="analytics-select"
-                        >
-                            <option value="">
-                                All Vehicles
-                            </option>
+                <div className="analytics-filter-controls">
 
-                            {vehicles.map(
-                                (vehicle) => (
-                                    <option
-                                        key={
-                                            vehicle.id
-                                        }
-                                        value={
-                                            vehicle.id
-                                        }
-                                    >
-                                        {vehicle.name}
+                    <div className="analytics-filter-field">
+                        <label>
+                            Vehicle
+                        </label>
 
-                                        {vehicle.registration
-                                            ? ` — ${vehicle.registration}`
-                                            : ""}
-                                    </option>
-                                )
-                            )}
-                        </select>
+                        <div className="analytics-select-wrapper">
+                            <CarIcon />
 
-                        <select
-                            value={
-                                selectedTripId
-                            }
-                            onChange={(event) =>
-                                setSelectedTripId(
-                                    event.target.value
-                                )
-                            }
-                            className="analytics-select analytics-trip-select"
-                        >
-                            <option value="">
-                                All Trips
-                            </option>
-
-                            {availableTrips.map(
-                                (trip) => (
-                                    <option
-                                        key={
-                                            trip.id
-                                        }
-                                        value={
-                                            trip.id
-                                        }
-                                    >
-                                        {trip.name} —{" "}
-                                        {
-                                            trip.startLocation
-                                        }{" "}
-                                        →{" "}
-                                        {
-                                            trip.destination
-                                        }
-                                    </option>
-                                )
-                            )}
-                        </select>
-
-                        {(selectedVehicleId ||
-                            selectedTripId) && (
-                            <button
-                                onClick={() => {
+                            <select
+                                value={
+                                    selectedVehicleId
+                                }
+                                onChange={(event) =>
                                     setSelectedVehicleId(
-                                        ""
-                                    );
-                                    setSelectedTripId(
-                                        ""
-                                    );
-                                }}
-                                className="analytics-clear-button"
+                                        event.target.value
+                                    )
+                                }
+                                className="analytics-select"
                             >
-                                Clear
-                            </button>
-                        )}
+                                <option value="">
+                                    All Vehicles
+                                </option>
+
+                                {vehicles.map(
+                                    (vehicle) => (
+                                        <option
+                                            key={
+                                                vehicle.id
+                                            }
+                                            value={
+                                                vehicle.id
+                                            }
+                                        >
+                                            {vehicle.name}
+
+                                            {vehicle.registration
+                                                ? ` — ${vehicle.registration}`
+                                                : ""}
+                                        </option>
+                                    )
+                                )}
+                            </select>
+                        </div>
                     </div>
+
+                    <div className="analytics-filter-field">
+                        <label>
+                            Trip
+                        </label>
+
+                        <div className="analytics-select-wrapper">
+                            <RouteIcon />
+
+                            <select
+                                value={
+                                    selectedTripId
+                                }
+                                onChange={(event) =>
+                                    setSelectedTripId(
+                                        event.target.value
+                                    )
+                                }
+                                className="analytics-select"
+                            >
+                                <option value="">
+                                    All Trips
+                                </option>
+
+                                {availableTrips.map(
+                                    (trip) => (
+                                        <option
+                                            key={
+                                                trip.id
+                                            }
+                                            value={
+                                                trip.id
+                                            }
+                                        >
+                                            {trip.name} —{" "}
+                                            {
+                                                trip.startLocation
+                                            }{" "}
+                                            →{" "}
+                                            {
+                                                trip.destination
+                                            }
+                                        </option>
+                                    )
+                                )}
+                            </select>
+                        </div>
+                    </div>
+
+                    {(selectedVehicleId ||
+                        selectedTripId) && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSelectedVehicleId(
+                                    ""
+                                );
+                                setSelectedTripId(
+                                    ""
+                                );
+                            }}
+                            className="analytics-clear-button"
+                        >
+                            <CloseIcon />
+                            Clear filters
+                        </button>
+                    )}
                 </div>
 
                 {(selectedVehicle ||
                     selectedTrip) && (
-                    <div className="analytics-filter-summary">
-                        Showing analytics for{" "}
+                    <div className="analytics-active-filter">
+                        <span className="analytics-active-dot" />
+
+                        <span>
+                            Showing analytics for
+                        </span>
 
                         {selectedVehicle && (
                             <strong>
@@ -483,8 +525,11 @@ function Analytics() {
                         )}
 
                         {selectedVehicle &&
-                            selectedTrip &&
-                            " · "}
+                            selectedTrip && (
+                                <span className="analytics-filter-separator">
+                                    /
+                                </span>
+                            )}
 
                         {selectedTrip && (
                             <strong>
@@ -493,368 +538,318 @@ function Analytics() {
                         )}
                     </div>
                 )}
-            </div>
+            </section>
 
             {/* OVERVIEW */}
 
-            <section
-                style={{
-                    marginBottom: "32px"
-                }}
+            <AnalyticsSection
+                eyebrow="OVERVIEW"
+                title="Your fuel overview"
+                description="The numbers that matter most, all in one place."
             >
-                <div
-                    style={{
-                        marginBottom: "14px"
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>
-                        Overview
-                    </h2>
+                <div className="analytics-stat-grid">
 
-                    <p
-                        style={{
-                            margin: "5px 0 0",
-                            opacity: 0.65,
-                            fontSize: "14px"
-                        }}
-                    >
-                        Your most important fuel
-                        numbers at a glance.
-                    </p>
+                    <AnalyticsStatCard
+                        icon={<MoneyIcon />}
+                        label="Total Spending"
+                        value={formatMoney(
+                            summary.totalSpending
+                        )}
+                        description="Total fuel expenses"
+                    />
+
+                    <AnalyticsStatCard
+                        icon={<FuelIcon />}
+                        label="Fuel Used"
+                        value={`${formatNumber(
+                            summary.totalFuel
+                        )} L`}
+                        description="Total fuel purchased"
+                    />
+
+                    <AnalyticsStatCard
+                        icon={<RouteIcon />}
+                        label="Distance"
+                        value={`${formatNumber(
+                            summary.totalDistance
+                        )} km`}
+                        description="Distance tracked"
+                    />
+
+                    <AnalyticsStatCard
+                        icon={<GaugeIcon />}
+                        label="Average Mileage"
+                        value={formatMileage(
+                            summary.averageMileage
+                        )}
+                        description="Overall fuel efficiency"
+                    />
+
                 </div>
-
-                <div className="dashboard-stats">
-                    <div className="stat-card">
-                        <span>
-                            Total Spending
-                        </span>
-
-                        <strong>
-                            {formatMoney(
-                                summary.totalSpending
-                            )}
-                        </strong>
-                    </div>
-
-                    <div className="stat-card">
-                        <span>Fuel Used</span>
-
-                        <strong>
-                            {formatNumber(
-                                summary.totalFuel
-                            )}{" "}
-                            L
-                        </strong>
-                    </div>
-
-                    <div className="stat-card">
-                        <span>Distance</span>
-
-                        <strong>
-                            {formatNumber(
-                                summary.totalDistance
-                            )}{" "}
-                            km
-                        </strong>
-                    </div>
-
-                    <div className="stat-card">
-                        <span>
-                            Average Mileage
-                        </span>
-
-                        <strong>
-                            {formatMileage(
-                                summary.averageMileage
-                            )}
-                        </strong>
-                    </div>
-                </div>
-            </section>
+            </AnalyticsSection>
 
             {/* SPENDING */}
 
-            <section
-                style={{
-                    marginBottom: "32px"
-                }}
+            <AnalyticsSection
+                eyebrow="SPENDING"
+                title="Fuel spending"
+                description="See how your fuel expenses change over time and across vehicles."
             >
-                <div
-                    style={{
-                        marginBottom: "14px"
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>
-                        Fuel Spending
-                    </h2>
+                <div className="analytics-chart-grid">
 
-                    <p
-                        style={{
-                            margin: "5px 0 0",
-                            opacity: 0.65,
-                            fontSize: "14px"
-                        }}
+                    <AnalyticsChartCard
+                        title="Monthly Spending"
+                        description="Fuel expenditure by month"
+                        icon={<CalendarIcon />}
                     >
-                        See where your fuel money
-                        is going over time.
-                    </p>
-                </div>
-
-                <div className="analytics-grid">
-
-                    <div className="analytics-card">
-                        <div
-                            style={{
-                                padding:
-                                    "20px 20px 0"
-                            }}
-                        >
-                            <h3>
-                                Monthly Spending
-                            </h3>
-
-                            <p
-                                style={{
-                                    opacity: 0.6,
-                                    fontSize: "13px"
-                                }}
-                            >
-                                Fuel expenditure by
-                                month
-                            </p>
-                        </div>
-
-                        <div className="chart-container">
-                            {spendingByMonth.length >
-                            0 ? (
-                                <ResponsiveContainer
-                                    width="100%"
-                                    height={300}
-                                >
-                                    <BarChart
-                                        data={
-                                            spendingByMonth
-                                        }
-                                    >
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                        />
-
-                                        <XAxis
-                                            dataKey="month"
-                                        />
-
-                                        <YAxis />
-
-                                        <Tooltip
-                                            formatter={(
-                                                value
-                                            ) =>
-                                                formatMoney(
-                                                    value
-                                                )
-                                            }
-                                        />
-
-                                        <Bar
-                                            dataKey="spending"
-                                            name="Spending"
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <EmptyState />
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="analytics-card">
-                        <div
-                            style={{
-                                padding:
-                                    "20px 20px 0"
-                            }}
-                        >
-                            <h3>
-                                Spending by Vehicle
-                            </h3>
-
-                            <p
-                                style={{
-                                    opacity: 0.6,
-                                    fontSize: "13px"
-                                }}
-                            >
-                                Compare fuel costs
-                                between vehicles
-                            </p>
-                        </div>
-
-                        <div className="chart-container">
-                            {spendingByVehicle.length >
-                            0 ? (
-                                <ResponsiveContainer
-                                    width="100%"
-                                    height={300}
-                                >
-                                    <BarChart
-                                        data={
-                                            spendingByVehicle
-                                        }
-                                    >
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                        />
-
-                                        <XAxis
-                                            dataKey="vehicleName"
-                                        />
-
-                                        <YAxis />
-
-                                        <Tooltip
-                                            formatter={(
-                                                value
-                                            ) =>
-                                                formatMoney(
-                                                    value
-                                                )
-                                            }
-                                        />
-
-                                        <Bar
-                                            dataKey="spending"
-                                            name="Spending"
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <EmptyState />
-                            )}
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            {/* MILEAGE */}
-
-            <section
-                style={{
-                    marginBottom: "32px"
-                }}
-            >
-                <div
-                    style={{
-                        marginBottom: "14px"
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>
-                        Mileage & Efficiency
-                    </h2>
-
-                    <p
-                        style={{
-                            margin: "5px 0 0",
-                            opacity: 0.65,
-                            fontSize: "14px"
-                        }}
-                    >
-                        Track how efficiently your
-                        vehicles are using fuel.
-                    </p>
-                </div>
-
-                <div className="analytics-card">
-                    <div
-                        style={{
-                            padding:
-                                "20px 20px 0"
-                        }}
-                    >
-                        <h3>
-                            Mileage Trend
-                        </h3>
-
-                        <p
-                            style={{
-                                opacity: 0.6,
-                                fontSize: "13px"
-                            }}
-                        >
-                            Fuel efficiency across
-                            your entries
-                        </p>
-                    </div>
-
-                    <div className="chart-container">
-                        {mileageTrend.length >
+                        {spendingByMonth.length >
                         0 ? (
                             <ResponsiveContainer
                                 width="100%"
-                                height={320}
+                                height={300}
                             >
-                                <LineChart
+                                <BarChart
                                     data={
-                                        mileageTrend
+                                        spendingByMonth
                                     }
+                                    margin={{
+                                        top: 10,
+                                        right: 10,
+                                        left: 0,
+                                        bottom: 0
+                                    }}
                                 >
                                     <CartesianGrid
                                         strokeDasharray="3 3"
+                                        vertical={false}
                                     />
 
                                     <XAxis
-                                        dataKey="date"
+                                        dataKey="month"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickMargin={10}
                                     />
 
-                                    <YAxis />
-
-                                    <Tooltip
-                                        formatter={(
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={(
                                             value
                                         ) =>
-                                            `${formatNumber(
+                                            `Rs ${Number(
                                                 value
-                                            )} km/L`
+                                            ).toLocaleString()}`
                                         }
                                     />
 
-                                    <Line
-                                        type="monotone"
-                                        dataKey="mileage"
-                                        name="Mileage"
-                                        strokeWidth={2}
-                                        dot={{
-                                            r: 3
+                                    <Tooltip
+                                        cursor={{
+                                            opacity: 0.08
                                         }}
+                                        formatter={(
+                                            value
+                                        ) =>
+                                            formatMoney(
+                                                value
+                                            )
+                                        }
                                     />
-                                </LineChart>
+
+                                    <Bar
+                                        dataKey="spending"
+                                        name="Spending"
+                                        radius={[
+                                            6,
+                                            6,
+                                            0,
+                                            0
+                                        ]}
+                                        maxBarSize={48}
+                                    />
+                                </BarChart>
                             </ResponsiveContainer>
                         ) : (
                             <EmptyState />
                         )}
-                    </div>
+                    </AnalyticsChartCard>
+
+                    <AnalyticsChartCard
+                        title="Spending by Vehicle"
+                        description="Compare fuel costs between vehicles"
+                        icon={<CarIcon />}
+                    >
+                        {spendingByVehicle.length >
+                        0 ? (
+                            <ResponsiveContainer
+                                width="100%"
+                                height={300}
+                            >
+                                <BarChart
+                                    data={
+                                        spendingByVehicle
+                                    }
+                                    margin={{
+                                        top: 10,
+                                        right: 10,
+                                        left: 0,
+                                        bottom: 0
+                                    }}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        vertical={false}
+                                    />
+
+                                    <XAxis
+                                        dataKey="vehicleName"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickMargin={10}
+                                    />
+
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={(
+                                            value
+                                        ) =>
+                                            `Rs ${Number(
+                                                value
+                                            ).toLocaleString()}`
+                                        }
+                                    />
+
+                                    <Tooltip
+                                        cursor={{
+                                            opacity: 0.08
+                                        }}
+                                        formatter={(
+                                            value
+                                        ) =>
+                                            formatMoney(
+                                                value
+                                            )
+                                        }
+                                    />
+
+                                    <Bar
+                                        dataKey="spending"
+                                        name="Spending"
+                                        radius={[
+                                            6,
+                                            6,
+                                            0,
+                                            0
+                                        ]}
+                                        maxBarSize={48}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <EmptyState />
+                        )}
+                    </AnalyticsChartCard>
+
                 </div>
+            </AnalyticsSection>
+
+            {/* MILEAGE */}
+
+            <AnalyticsSection
+                eyebrow="EFFICIENCY"
+                title="Mileage & efficiency"
+                description="Track how efficiently your vehicles are using fuel."
+            >
+                <AnalyticsChartCard
+                    title="Mileage Trend"
+                    description="Fuel efficiency across your entries"
+                    icon={<GaugeIcon />}
+                    className="analytics-full-chart"
+                >
+                    {mileageTrend.length >
+                    0 ? (
+                        <ResponsiveContainer
+                            width="100%"
+                            height={320}
+                        >
+                            <LineChart
+                                data={
+                                    mileageTrend
+                                }
+                                margin={{
+                                    top: 10,
+                                    right: 10,
+                                    left: 0,
+                                    bottom: 0
+                                }}
+                            >
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    vertical={false}
+                                />
+
+                                <XAxis
+                                    dataKey="date"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickMargin={10}
+                                />
+
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+
+                                <Tooltip
+                                    formatter={(
+                                        value
+                                    ) =>
+                                        `${formatNumber(
+                                            value
+                                        )} km/L`
+                                    }
+                                />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="mileage"
+                                    name="Mileage"
+                                    strokeWidth={2.5}
+                                    dot={{
+                                        r: 3
+                                    }}
+                                    activeDot={{
+                                        r: 5
+                                    }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <EmptyState />
+                    )}
+                </AnalyticsChartCard>
 
                 {/* VEHICLE EFFICIENCY */}
 
-                <div
-                    className="analytics-card vehicle-efficiency-card"
-                    style={{
-                        marginTop: "20px"
-                    }}
-                >
+                <div className="analytics-card vehicle-efficiency-card">
                     <div className="analytics-card-heading">
-                        <div>
-                            <h3>
-                                Vehicle Efficiency
-                            </h3>
+                        <div className="analytics-card-title-group">
+                            <div className="analytics-card-icon">
+                                <CarIcon />
+                            </div>
 
-                            <p>
-                                Compare the fuel
-                                efficiency of each
-                                vehicle.
-                            </p>
+                            <div>
+                                <h3>
+                                    Vehicle Efficiency
+                                </h3>
+
+                                <p>
+                                    Compare the fuel
+                                    efficiency of each
+                                    vehicle.
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -901,20 +896,26 @@ function Analytics() {
                                             }
                                         >
                                             <div className="vehicle-efficiency-top">
-                                                <div>
-                                                    <h4>
-                                                        {
-                                                            vehicle.vehicleName
-                                                        }
-                                                    </h4>
+                                                <div className="vehicle-efficiency-identity">
+                                                    <div className="vehicle-efficiency-avatar">
+                                                        <CarIcon />
+                                                    </div>
 
-                                                    {vehicle.vehicleRegistration && (
-                                                        <span>
+                                                    <div>
+                                                        <h4>
                                                             {
-                                                                vehicle.vehicleRegistration
+                                                                vehicle.vehicleName
                                                             }
-                                                        </span>
-                                                    )}
+                                                        </h4>
+
+                                                        {vehicle.vehicleRegistration && (
+                                                            <span>
+                                                                {
+                                                                    vehicle.vehicleRegistration
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 <div className="vehicle-average">
@@ -984,42 +985,24 @@ function Analytics() {
                         </div>
                     ) : (
                         <div className="analytics-empty-panel">
-                            No mileage data
-                            available.
+                            <EmptyIcon />
+
+                            <span>
+                                No mileage data
+                                available.
+                            </span>
                         </div>
                     )}
                 </div>
-            </section>
+            </AnalyticsSection>
 
             {/* TRIP PERFORMANCE */}
 
-            <section
-                style={{
-                    marginBottom: "32px"
-                }}
+            <AnalyticsSection
+                eyebrow="TRIPS"
+                title="Trip performance"
+                description="Compare the distance, fuel and cost of your journeys."
             >
-                <div
-                    style={{
-                        marginBottom: "14px"
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>
-                        Trip Performance
-                    </h2>
-
-                    <p
-                        style={{
-                            margin: "5px 0 0",
-                            opacity: 0.65,
-                            fontSize: "14px"
-                        }}
-                    >
-                        Compare the distance,
-                        fuel and cost of your
-                        trips.
-                    </p>
-                </div>
-
                 <div className="analytics-card trip-performance-card">
                     {tripAnalytics.length >
                     0 ? (
@@ -1034,23 +1017,31 @@ function Analytics() {
                                     >
                                         <div className="trip-performance-main">
                                             <div className="trip-performance-title">
-                                                <h3>
-                                                    {
-                                                        trip.name
-                                                    }
-                                                </h3>
+                                                <div className="trip-performance-icon">
+                                                    <RouteIcon />
+                                                </div>
 
-                                                <span>
-                                                    {
-                                                        trip.startLocation
-                                                    }{" "}
-                                                    <span className="trip-arrow">
-                                                        →
-                                                    </span>{" "}
-                                                    {
-                                                        trip.destination
-                                                    }
-                                                </span>
+                                                <div>
+                                                    <h3>
+                                                        {
+                                                            trip.name
+                                                        }
+                                                    </h3>
+
+                                                    <span>
+                                                        {
+                                                            trip.startLocation
+                                                        }
+
+                                                        <span className="trip-arrow">
+                                                            →
+                                                        </span>
+
+                                                        {
+                                                            trip.destination
+                                                        }
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <div className="trip-performance-mileage">
@@ -1131,202 +1122,560 @@ function Analytics() {
                         </div>
                     ) : (
                         <div className="analytics-empty-panel">
-                            No trip data
-                            available.
+                            <EmptyIcon />
+
+                            <span>
+                                No trip data
+                                available.
+                            </span>
                         </div>
                     )}
                 </div>
-            </section>
+            </AnalyticsSection>
 
             {/* FUEL PRICE */}
 
-            <section
-                style={{
-                    marginBottom: "32px"
-                }}
+            <AnalyticsSection
+                eyebrow="FUEL PRICES"
+                title="Fuel price history"
+                description="Track how petrol prices have changed over time."
             >
-                <div
-                    style={{
-                        marginBottom: "14px"
-                    }}
+                <AnalyticsChartCard
+                    title="Petrol Price"
+                    description="Historical fuel price movement"
+                    icon={<FuelIcon />}
+                    className="analytics-full-chart"
                 >
-                    <h2 style={{ margin: 0 }}>
-                        Fuel Price History
-                    </h2>
-
-                    <p
-                        style={{
-                            margin: "5px 0 0",
-                            opacity: 0.65,
-                            fontSize: "14px"
-                        }}
-                    >
-                        Track how petrol prices
-                        have changed over time.
-                    </p>
-                </div>
-
-                <div className="analytics-card">
-                    <div className="chart-container">
-                        {fuelPriceHistory.length >
-                        0 ? (
-                            <ResponsiveContainer
-                                width="100%"
-                                height={320}
+                    {fuelPriceHistory.length >
+                    0 ? (
+                        <ResponsiveContainer
+                            width="100%"
+                            height={320}
+                        >
+                            <LineChart
+                                data={
+                                    fuelPriceHistory
+                                }
+                                margin={{
+                                    top: 10,
+                                    right: 10,
+                                    left: 0,
+                                    bottom: 0
+                                }}
                             >
-                                <LineChart
-                                    data={
-                                        fuelPriceHistory
-                                    }
-                                >
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                    />
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    vertical={false}
+                                />
 
-                                    <XAxis
-                                        dataKey="effectiveDate"
-                                    />
+                                <XAxis
+                                    dataKey="effectiveDate"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickMargin={10}
+                                />
 
-                                    <YAxis />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
 
-                                    <Tooltip
-                                        formatter={(
+                                <Tooltip
+                                    formatter={(
+                                        value
+                                    ) =>
+                                        `Rs ${formatNumber(
                                             value
-                                        ) =>
-                                            `Rs ${formatNumber(
-                                                value
-                                            )}`
-                                        }
-                                    />
+                                        )}`
+                                    }
+                                />
 
-                                    <Line
-                                        type="monotone"
-                                        dataKey="price"
-                                        name="Petrol Price"
-                                        strokeWidth={2}
-                                        dot={{
-                                            r: 3
-                                        }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <EmptyState />
-                        )}
-                    </div>
-                </div>
-            </section>
+                                <Line
+                                    type="monotone"
+                                    dataKey="price"
+                                    name="Petrol Price"
+                                    strokeWidth={2.5}
+                                    dot={{
+                                        r: 3
+                                    }}
+                                    activeDot={{
+                                        r: 5
+                                    }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <EmptyState />
+                    )}
+                </AnalyticsChartCard>
+            </AnalyticsSection>
 
             {/* QUICK INSIGHTS */}
 
-            <section>
-                <div
-                    style={{
-                        marginBottom: "14px"
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>
-                        Quick Insights
-                    </h2>
+            <AnalyticsSection
+                eyebrow="QUICK INSIGHTS"
+                title="At a glance"
+                description="A quick summary of the selected data."
+                last
+            >
+                <div className="analytics-stat-grid">
 
-                    <p
-                        style={{
-                            margin: "5px 0 0",
-                            opacity: 0.65,
-                            fontSize: "14px"
-                        }}
-                    >
-                        A quick summary of the
-                        selected data.
-                    </p>
-                </div>
+                    <AnalyticsStatCard
+                        icon={<ReceiptIcon />}
+                        label="Fuel Entries"
+                        value={formatNumber(
+                            summary.totalEntries,
+                            0
+                        )}
+                        description="Recorded fuel purchases"
+                    />
 
-                <div className="dashboard-stats">
-                    <div className="stat-card">
-                        <span>
-                            Fuel Entries
-                        </span>
-
-                        <strong>
-                            {formatNumber(
-                                summary.totalEntries,
-                                0
-                            )}
-                        </strong>
-                    </div>
-
-                    <div className="stat-card">
-                        <span>
-                            Average Fuel Cost
-                        </span>
-
-                        <strong>
-                            {summary.averageFuelCost !==
+                    <AnalyticsStatCard
+                        icon={<MoneyIcon />}
+                        label="Average Fuel Cost"
+                        value={
+                            summary.averageFuelCost !==
                                 null &&
                             summary.averageFuelCost !==
                                 undefined
                                 ? formatMoney(
                                       summary.averageFuelCost
                                   )
-                                : "—"}
+                                : "—"
+                        }
+                        suffix="/ L"
+                        description="Average price per litre"
+                    />
 
-                            <small
-                                style={{
-                                    fontSize: "12px",
-                                    fontWeight:
-                                        "normal",
-                                    marginLeft: "4px"
-                                }}
-                            >
-                                / L
-                            </small>
-                        </strong>
+                    <AnalyticsStatCard
+                        icon={<TrendingUpIcon />}
+                        label="Best Mileage"
+                        value={formatMileage(
+                            summary.bestMileage
+                        )}
+                        description="Highest recorded efficiency"
+                    />
+
+                    <AnalyticsStatCard
+                        icon={<TrendingDownIcon />}
+                        label="Lowest Mileage"
+                        value={formatMileage(
+                            summary.worstMileage
+                        )}
+                        description="Lowest recorded efficiency"
+                    />
+
+                </div>
+            </AnalyticsSection>
+        </main>
+    );
+}
+
+function AnalyticsSection({
+    eyebrow,
+    title,
+    description,
+    children,
+    last = false
+}) {
+    return (
+        <section
+            className={`analytics-section ${
+                last
+                    ? "analytics-section-last"
+                    : ""
+            }`}
+        >
+            <div className="analytics-section-header">
+                <div>
+                    <span className="analytics-section-eyebrow">
+                        {eyebrow}
+                    </span>
+
+                    <h2>{title}</h2>
+
+                    <p>{description}</p>
+                </div>
+            </div>
+
+            {children}
+        </section>
+    );
+}
+
+function AnalyticsStatCard({
+    icon,
+    label,
+    value,
+    description,
+    suffix
+}) {
+    return (
+        <div className="analytics-stat-card">
+            <div className="analytics-stat-top">
+                <div className="analytics-stat-icon">
+                    {icon}
+                </div>
+
+                <span className="analytics-stat-label">
+                    {label}
+                </span>
+            </div>
+
+            <div className="analytics-stat-value-row">
+                <strong>
+                    {value}
+                </strong>
+
+                {suffix && (
+                    <small>
+                        {suffix}
+                    </small>
+                )}
+            </div>
+
+            <span className="analytics-stat-description">
+                {description}
+            </span>
+        </div>
+    );
+}
+
+function AnalyticsChartCard({
+    title,
+    description,
+    icon,
+    children,
+    className = ""
+}) {
+    return (
+        <div
+            className={`analytics-card analytics-chart-card ${className}`}
+        >
+            <div className="analytics-card-heading">
+                <div className="analytics-card-title-group">
+                    <div className="analytics-card-icon">
+                        {icon}
                     </div>
 
-                    <div className="stat-card">
-                        <span>
-                            Best Mileage
-                        </span>
+                    <div>
+                        <h3>{title}</h3>
 
-                        <strong>
-                            {formatMileage(
-                                summary.bestMileage
-                            )}
-                        </strong>
-                    </div>
-
-                    <div className="stat-card">
-                        <span>
-                            Lowest Mileage
-                        </span>
-
-                        <strong>
-                            {formatMileage(
-                                summary.worstMileage
-                            )}
-                        </strong>
+                        <p>{description}</p>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <div className="chart-container">
+                {children}
+            </div>
         </div>
     );
 }
 
 function EmptyState() {
     return (
-        <div
-            style={{
-                height: "280px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: 0.55,
-                fontSize: "14px"
-            }}
-        >
-            No data available for this
-            selection.
+        <div className="analytics-chart-empty">
+            <div className="analytics-empty-icon">
+                <ChartIcon />
+            </div>
+
+            <strong>
+                No data available
+            </strong>
+
+            <span>
+                There isn't enough data for
+                this selection yet.
+            </span>
         </div>
+    );
+}
+
+/* ---------------- ICONS ---------------- */
+
+function ChartIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M4 19V5" />
+            <path d="M4 19h16" />
+            <path d="m7 15 4-5 3 3 5-7" />
+        </svg>
+    );
+}
+
+function CarIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M5 17h14" />
+            <path d="M6 17H4a1 1 0 0 1-1-1v-3a2 2 0 0 1 2-2h1l1.5-4h7L17 11h1a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-2" />
+            <path d="M7 17v2" />
+            <path d="M17 17v2" />
+            <circle cx="7" cy="15" r="1.2" />
+            <circle cx="17" cy="15" r="1.2" />
+        </svg>
+    );
+}
+
+function FuelIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M6 20V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v15" />
+            <path d="M6 20h12" />
+            <path d="M9 7h4" />
+            <path d="M16 7h2l2 2v7a2 2 0 0 0 2 2" />
+            <path d="M20 9v4h-2" />
+        </svg>
+    );
+}
+
+function MoneyIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <rect
+                x="3"
+                y="5"
+                width="18"
+                height="14"
+                rx="2"
+            />
+            <circle
+                cx="12"
+                cy="12"
+                r="3"
+            />
+            <path d="M7 9h.01" />
+            <path d="M17 15h.01" />
+        </svg>
+    );
+}
+
+function RouteIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <circle
+                cx="6"
+                cy="18"
+                r="2.5"
+            />
+            <circle
+                cx="18"
+                cy="6"
+                r="2.5"
+            />
+            <path d="M8.5 18H10a4 4 0 0 0 4-4v-2a4 4 0 0 1 4-4" />
+        </svg>
+    );
+}
+
+function GaugeIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M4 16a8 8 0 1 1 16 0" />
+            <path d="M12 12l4-3" />
+            <path d="M5 19h14" />
+        </svg>
+    );
+}
+
+function CalendarIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <rect
+                x="3"
+                y="4"
+                width="18"
+                height="17"
+                rx="2"
+            />
+            <path d="M16 2v4" />
+            <path d="M8 2v4" />
+            <path d="M3 10h18" />
+        </svg>
+    );
+}
+
+function FilterIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M4 6h16" />
+            <path d="M7 12h10" />
+            <path d="M10 18h4" />
+        </svg>
+    );
+}
+
+function CloseIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+        >
+            <path d="m7 7 10 10" />
+            <path d="m17 7-10 10" />
+        </svg>
+    );
+}
+
+function AlertIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M10.3 3.8 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+        </svg>
+    );
+}
+
+function EmptyIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <rect
+                x="4"
+                y="4"
+                width="16"
+                height="16"
+                rx="3"
+            />
+            <path d="M8 15l2.5-3 2.5 2 3-4" />
+        </svg>
+    );
+}
+
+function TrendingUpIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M3 17l6-6 4 4 7-8" />
+            <path d="M15 7h5v5" />
+        </svg>
+    );
+}
+
+function TrendingDownIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M3 7l6 6 4-4 7 8" />
+            <path d="M15 17h5v-5" />
+        </svg>
+    );
+}
+
+function ReceiptIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
+            <path d="M9 8h6" />
+            <path d="M9 12h6" />
+            <path d="M9 16h3" />
+        </svg>
     );
 }
 
