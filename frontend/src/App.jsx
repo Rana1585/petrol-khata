@@ -3,6 +3,7 @@ import {
     Routes,
     Route,
     Navigate,
+    Link,
 } from "react-router-dom";
 
 import { useEffect, useState } from "react";
@@ -20,6 +21,25 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 import { supabase } from "./supabase";
+
+
+function MenuIcon() {
+    return (
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M4 6h16" />
+            <path d="M4 12h16" />
+            <path d="M4 18h16" />
+        </svg>
+    );
+}
 
 
 function LandingLogoIcon({ size = 22 }) {
@@ -45,69 +65,37 @@ function LandingLogoIcon({ size = 22 }) {
 }
 
 
-function MenuIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M4 6h16" />
-            <path d="M4 12h16" />
-            <path d="M4 18h16" />
-        </svg>
-    );
-}
-
-
-function CloseIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M6 6l12 12" />
-            <path d="M18 6 6 18" />
-        </svg>
-    );
-}
-
-
 function LandingPage() {
     return (
         <div className="landing-page">
             <header className="landing-header">
-                <div className="landing-brand">
-                    <div className="landing-logo">
-                        <LandingLogoIcon size={22} />
-                    </div>
+                <Link
+                    to="/"
+                    className="landing-brand"
+                >
+                    <span className="landing-logo">
+                        <LandingLogoIcon size={21} />
+                    </span>
 
-                    <span>Petrol Khata</span>
-                </div>
+                    <span className="landing-brand-name">
+                        Petrol Khata
+                    </span>
+                </Link>
 
                 <div className="landing-actions">
-                    <a
-                        href="/login"
+                    <Link
+                        to="/login"
                         className="landing-login"
                     >
                         Login
-                    </a>
+                    </Link>
 
-                    <a
-                        href="/signup"
+                    <Link
+                        to="/signup"
                         className="landing-signup"
                     >
                         Get Started
-                    </a>
+                    </Link>
                 </div>
             </header>
 
@@ -132,19 +120,19 @@ function LandingPage() {
                         </p>
 
                         <div className="landing-hero-actions">
-                            <a
-                                href="/signup"
+                            <Link
+                                to="/signup"
                                 className="landing-primary-button"
                             >
                                 Get Started
-                            </a>
+                            </Link>
 
-                            <a
-                                href="/login"
+                            <Link
+                                to="/login"
                                 className="landing-secondary-button"
                             >
                                 Go to Dashboard
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -153,31 +141,27 @@ function LandingPage() {
                             <div className="landing-preview-top">
                                 <div>
                                     <span>Petrol Khata</span>
-
                                     <strong>Dashboard</strong>
                                 </div>
 
                                 <div className="landing-preview-avatar">
-                                    <LandingLogoIcon size={17} />
+                                    <LandingLogoIcon size={16} />
                                 </div>
                             </div>
 
                             <div className="landing-preview-stats">
                                 <div>
                                     <span>Total Fuel Cost</span>
-
-                                    <strong>Rs 74,000</strong>
+                                    <strong>Rs. 74,000</strong>
                                 </div>
 
                                 <div>
                                     <span>Total Litres</span>
-
                                     <strong>271 L</strong>
                                 </div>
 
                                 <div>
                                     <span>Vehicles</span>
-
                                     <strong>2</strong>
                                 </div>
                             </div>
@@ -203,7 +187,9 @@ function LandingPage() {
 
                 <section className="landing-features">
                     <div className="landing-section-heading">
-                        <span>EVERYTHING IN ONE PLACE</span>
+                        <span>
+                            EVERYTHING IN ONE PLACE
+                        </span>
 
                         <h2>
                             Built for smarter vehicle
@@ -277,7 +263,7 @@ function FeatureCard({
     description,
 }) {
     return (
-        <div className="landing-feature-card">
+        <article className="landing-feature-card">
             <div className="landing-feature-icon">
                 {icon}
             </div>
@@ -285,7 +271,7 @@ function FeatureCard({
             <h3>{title}</h3>
 
             <p>{description}</p>
-        </div>
+        </article>
     );
 }
 
@@ -310,8 +296,9 @@ function ProtectedApp() {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                setSession(session);
+            (_event, nextSession) => {
+                setSession(nextSession);
+                setLoading(false);
             }
         );
 
@@ -341,16 +328,9 @@ function ProtectedApp() {
     }, []);
 
     useEffect(() => {
-        if (!sidebarOpen) {
-            document.body.classList.remove(
-                "sidebar-drawer-open"
-            );
-
-            return;
-        }
-
-        document.body.classList.add(
-            "sidebar-drawer-open"
+        document.body.classList.toggle(
+            "sidebar-drawer-open",
+            sidebarOpen
         );
 
         return () => {
@@ -360,9 +340,13 @@ function ProtectedApp() {
         };
     }, [sidebarOpen]);
 
+    function closeSidebar() {
+        setSidebarOpen(false);
+    }
+
     if (loading) {
         return (
-            <div className="app">
+            <div className="app app-loading-state">
                 <main className="main-content">
                     <div className="app-loading">
                         <div className="app-loading-spinner"></div>
@@ -389,14 +373,14 @@ function ProtectedApp() {
         <div className="app">
             <Sidebar
                 isOpen={sidebarOpen}
-                onClose={() => setSidebarOpen(false)}
+                onClose={closeSidebar}
             />
 
             {sidebarOpen && (
                 <button
                     type="button"
                     className="sidebar-overlay"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={closeSidebar}
                     aria-label="Close navigation"
                 />
             )}
@@ -406,16 +390,14 @@ function ProtectedApp() {
                     <button
                         type="button"
                         className="mobile-menu-button"
-                        onClick={() =>
-                            setSidebarOpen(true)
-                        }
+                        onClick={() => setSidebarOpen(true)}
                         aria-label="Open navigation"
                         aria-expanded={sidebarOpen}
                     >
                         <MenuIcon />
                     </button>
 
-                    <div className="top-header-spacer"></div>
+                    <div className="top-header-spacer" />
 
                     <ProfileMenu />
                 </header>
@@ -474,7 +456,7 @@ function ProtectedApp() {
 
 function NotFound() {
     return (
-        <main className="page">
+        <main className="page not-found-page">
             <div className="page-header">
                 <div>
                     <span className="page-eyebrow">
@@ -483,13 +465,20 @@ function NotFound() {
 
                     <h1>404</h1>
 
-                    <p>Page not found</p>
+                    <p>
+                        The page you are looking for
+                        doesn't exist.
+                    </p>
                 </div>
             </div>
 
             <div className="empty-state">
-                The page you're looking for doesn't
-                exist.
+                <strong>Page not found</strong>
+
+                <span>
+                    Use the sidebar to navigate back to
+                    Petrol Khata.
+                </span>
             </div>
         </main>
     );
@@ -584,7 +573,13 @@ function VehicleStatsIcon() {
             strokeLinecap="round"
             strokeLinejoin="round"
         >
-            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <rect
+                x="4"
+                y="4"
+                width="16"
+                height="16"
+                rx="2"
+            />
             <path d="M8 16v-3" />
             <path d="M12 16V8" />
             <path d="M16 16v-5" />
