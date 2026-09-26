@@ -4065,3 +4065,38 @@ tbody tr:hover {
         scroll-behavior: auto !important;
     }
 }
+/* =========================================================
+   VEHICLE ICON SIZE REFINEMENT
+   ========================================================= */
+
+.vehicle-card-icon {
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+    border-radius: 9px;
+}
+
+.vehicle-card-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.vehicle-detail-hero-icon {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+    border-radius: 11px;
+}
+
+.vehicle-detail-hero-icon svg {
+    width: 21px;
+    height: 21px;
+}

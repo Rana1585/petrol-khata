@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import ProfileMenu from "./ProfileMenu";
 
-import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
 import FuelEntries from "./pages/FuelEntries";
 import Trips from "./pages/Trips";
@@ -131,7 +130,7 @@ function LandingPage() {
                                 to="/login"
                                 className="landing-secondary-button"
                             >
-                                Go to Dashboard
+                                Go to Petrol Khata
                             </Link>
                         </div>
                     </div>
@@ -141,7 +140,7 @@ function LandingPage() {
                             <div className="landing-preview-top">
                                 <div>
                                     <span>Petrol Khata</span>
-                                    <strong>Dashboard</strong>
+                                    <strong>Vehicles</strong>
                                 </div>
 
                                 <div className="landing-preview-avatar">
@@ -404,11 +403,6 @@ function ProtectedApp() {
 
                 <Routes>
                     <Route
-                        path="/dashboard"
-                        element={<Dashboard />}
-                    />
-
-                    <Route
                         path="/vehicles"
                         element={<Vehicles />}
                     />
@@ -434,10 +428,20 @@ function ProtectedApp() {
                     />
 
                     <Route
+                        path="/dashboard"
+                        element={
+                            <Navigate
+                                to="/vehicles"
+                                replace
+                            />
+                        }
+                    />
+
+                    <Route
                         path="/"
                         element={
                             <Navigate
-                                to="/dashboard"
+                                to="/vehicles"
                                 replace
                             />
                         }

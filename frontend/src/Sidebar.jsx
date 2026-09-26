@@ -4,41 +4,26 @@ import {
 } from "react-router-dom";
 
 
-const navigationGroups = [
+const navigationItems = [
     {
-        title: "OVERVIEW",
-        items: [
-            {
-                label: "Dashboard",
-                path: "/dashboard",
-                icon: DashboardIcon,
-            },
-        ],
+        label: "Vehicles",
+        path: "/vehicles",
+        icon: VehicleIcon,
     },
     {
-        title: "MANAGEMENT",
-        items: [
-            {
-                label: "Vehicles",
-                path: "/vehicles",
-                icon: VehicleIcon,
-            },
-            {
-                label: "Fuel Entries",
-                path: "/entries",
-                icon: FuelIcon,
-            },
-            {
-                label: "Trips",
-                path: "/trips",
-                icon: RouteIcon,
-            },
-            {
-                label: "Analytics",
-                path: "/analytics",
-                icon: AnalyticsIcon,
-            },
-        ],
+        label: "Fuel Entries",
+        path: "/entries",
+        icon: FuelIcon,
+    },
+    {
+        label: "Trips",
+        path: "/trips",
+        icon: RouteIcon,
+    },
+    {
+        label: "Analytics",
+        path: "/analytics",
+        icon: AnalyticsIcon,
     },
 ];
 
@@ -59,7 +44,7 @@ function Sidebar({
             <div className="sidebar-inner">
                 <div className="sidebar-header">
                     <NavLink
-                        to="/dashboard"
+                        to="/vehicles"
                         className="sidebar-brand"
                         onClick={onClose}
                     >
@@ -69,6 +54,7 @@ function Sidebar({
 
                         <span className="sidebar-brand-text">
                             <strong>Petrol Khata</strong>
+
                             <small>
                                 Fuel management
                             </small>
@@ -88,59 +74,50 @@ function Sidebar({
                 <div className="sidebar-divider" />
 
                 <nav className="sidebar-nav">
-                    {navigationGroups.map((group) => (
-                        <div
-                            className="sidebar-section"
-                            key={group.title}
-                        >
-                            <span className="sidebar-section-title">
-                                {group.title}
-                            </span>
+                    <div className="sidebar-section">
+                        <span className="sidebar-section-title">
+                            MANAGEMENT
+                        </span>
 
-                            <div className="sidebar-section-links">
-                                {group.items.map((item) => {
-                                    const Icon = item.icon;
+                        <div className="sidebar-section-links">
+                            {navigationItems.map((item) => {
+                                const Icon = item.icon;
 
-                                    const isVehicleDetailsPage =
-                                        item.path ===
-                                            "/vehicles" &&
-                                        location.pathname.startsWith(
-                                            "/vehicles/"
-                                        );
-
-                                    return (
-                                        <NavLink
-                                            key={item.path}
-                                            to={item.path}
-                                            end={
-                                                item.path ===
-                                                "/dashboard"
-                                            }
-                                            onClick={onClose}
-                                            className={({ isActive }) =>
-                                                isActive ||
-                                                isVehicleDetailsPage
-                                                    ? "sidebar-link active"
-                                                    : "sidebar-link"
-                                            }
-                                        >
-                                            <span className="sidebar-icon">
-                                                <Icon />
-                                            </span>
-
-                                            <span className="sidebar-link-label">
-                                                {item.label}
-                                            </span>
-
-                                            <span className="sidebar-link-indicator">
-                                                <ChevronIcon />
-                                            </span>
-                                        </NavLink>
+                                const isVehicleDetailsPage =
+                                    item.path ===
+                                        "/vehicles" &&
+                                    location.pathname.startsWith(
+                                        "/vehicles/"
                                     );
-                                })}
-                            </div>
+
+                                return (
+                                    <NavLink
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={onClose}
+                                        className={({ isActive }) =>
+                                            isActive ||
+                                            isVehicleDetailsPage
+                                                ? "sidebar-link active"
+                                                : "sidebar-link"
+                                        }
+                                    >
+                                        <span className="sidebar-icon">
+                                            <Icon />
+                                        </span>
+
+                                        <span className="sidebar-link-label">
+                                            {item.label}
+                                        </span>
+
+                                        <span className="sidebar-link-indicator">
+                                            <ChevronIcon />
+                                        </span>
+                                    </NavLink>
+                                );
+                            })}
                         </div>
-                    ))}
+                    </div>
                 </nav>
 
                 <div className="sidebar-spacer" />
@@ -164,6 +141,7 @@ function Sidebar({
 
                     <div className="sidebar-footer-brand">
                         <strong>Petrol Khata</strong>
+
                         <small>
                             Personal vehicle manager
                         </small>
@@ -191,50 +169,6 @@ function LogoIcon() {
             <path d="M9 15.5V19" />
             <path d="M13 15.5V19" />
             <path d="M7 19h8" />
-        </svg>
-    );
-}
-
-
-function DashboardIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <rect
-                x="3"
-                y="3"
-                width="7"
-                height="7"
-                rx="1"
-            />
-            <rect
-                x="14"
-                y="3"
-                width="7"
-                height="7"
-                rx="1"
-            />
-            <rect
-                x="3"
-                y="14"
-                width="7"
-                height="7"
-                rx="1"
-            />
-            <rect
-                x="14"
-                y="14"
-                width="7"
-                height="7"
-                rx="1"
-            />
         </svg>
     );
 }

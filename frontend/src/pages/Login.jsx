@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
     Link,
     useNavigate,
@@ -165,7 +166,7 @@ function Login() {
             return;
         }
 
-        navigate("/dashboard");
+        navigate("/vehicles");
     }
 
     return (
