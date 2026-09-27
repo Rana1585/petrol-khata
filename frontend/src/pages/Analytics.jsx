@@ -610,11 +610,20 @@ function Analytics() {
     const [error, setError] = useState("");
 
     async function loadFilters() {
-        const [vehicleData, tripData] =
+        const [vehicleResponse, tripResponse] =
             await Promise.all([
                 apiFetch("/vehicles"),
                 apiFetch("/trips"),
             ]);
+
+        if (!vehicleResponse.ok || !tripResponse.ok) {
+            throw new Error("Unable to load analytics filters.");
+        }
+
+        const [vehicleData, tripData] = await Promise.all([
+            vehicleResponse.json(),
+            tripResponse.json(),
+        ]);
 
         setVehicles(
             Array.isArray(vehicleData)
@@ -659,10 +668,15 @@ function Analytics() {
 
             const query = params.toString();
 
-            const result = await apiFetch(
+            const response = await apiFetch(
                 `/analytics${query ? `?${query}` : ""}`
             );
 
+            if (!response.ok) {
+                throw new Error(`Analytics request failed (${response.status}).`);
+            }
+
+            const result = await response.json();
             setData(result);
         } catch (err) {
             console.error("Analytics loading error:", err);
@@ -1160,7 +1174,7 @@ function Analytics() {
                                 data={
                                     spendingByMonth
                                 }
-                                valueKey="totalSpending"
+                                valueKey="spending"
                                 labelKey="month"
                                 money
                             />
@@ -1179,8 +1193,8 @@ function Analytics() {
                                 data={
                                     spendingByVehicle
                                 }
-                                valueKey="totalSpending"
-                                labelKey="vehicle"
+                                valueKey="spending"
+                                labelKey="vehicleName"
                                 money
                             />
                         </div>
@@ -1207,7 +1221,7 @@ function Analytics() {
                             <LineChart
                                 data={mileageTrend}
                                 valueKey="mileage"
-                                labelKey="month"
+                                labelKey="date"
                             />
                         </div>
                     </AnalyticsCard>
@@ -1464,7 +1478,7 @@ function Analytics() {
                                     fuelPriceHistory
                                 }
                                 valueKey="price"
-                                labelKey="date"
+                                labelKey="effectiveDate"
                                 money
                             />
                         )}
