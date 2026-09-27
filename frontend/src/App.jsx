@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 
 import Sidebar from "./Sidebar";
+import BottomNav from "./BottomNav";
 import ProfileMenu from "./ProfileMenu";
 
 import Vehicles from "./pages/Vehicles";
@@ -453,6 +454,7 @@ function ProtectedApp() {
                     />
                 </Routes>
             </div>
+            <BottomNav />
         </div>
     );
 }
