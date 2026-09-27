@@ -1,16 +1,598 @@
-import { useEffect, useState } from "react";
-import {
-    ResponsiveContainer,
-    LineChart,
-    Line,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip
-} from "recharts";
+
+import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api";
+
+/* ─────────────────────────────────────────────
+   Icons
+───────────────────────────────────────────── */
+
+function ChartIcon({ size = 20 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M4 19V5" />
+            <path d="M4 19h16" />
+            <path d="m7 15 4-4 3 2 5-6" />
+        </svg>
+    );
+}
+
+function CarIcon({ size = 20 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M5 17h14" />
+            <path d="M6 17H4.5a1.5 1.5 0 0 1-1.5-1.5v-3A1.5 1.5 0 0 1 4.5 11h1l1.5-4h10l1.5 4h1a1.5 1.5 0 0 1 1.5 1.5v3A1.5 1.5 0 0 1 19.5 17H18" />
+            <path d="M7 17v2" />
+            <path d="M17 17v2" />
+            <path d="M7 11h10" />
+            <circle cx="7" cy="14.5" r="1" />
+            <circle cx="17" cy="14.5" r="1" />
+        </svg>
+    );
+}
+
+function FuelIcon({ size = 20 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16" />
+            <path d="M4 21h13" />
+            <path d="M8 7h5v4H8z" />
+            <path d="M16 7h2l2 2v7a2 2 0 0 0 2 2" />
+            <path d="M20 11h2" />
+        </svg>
+    );
+}
+
+function MoneyIcon({ size = 20 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <circle cx="12" cy="12" r="3" />
+            <path d="M7 9h.01" />
+            <path d="M17 15h.01" />
+        </svg>
+    );
+}
+
+function RouteIcon({ size = 20 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <circle cx="6" cy="18" r="2.5" />
+            <circle cx="18" cy="6" r="2.5" />
+            <path d="M8.5 18c5 0 2-12 7-12" />
+        </svg>
+    );
+}
+
+function GaugeIcon({ size = 20 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M4.5 16a8 8 0 1 1 15 0" />
+            <path d="m12 12 4-4" />
+            <path d="M12 12h.01" />
+            <path d="M7 18h10" />
+        </svg>
+    );
+}
+
+function CalendarIcon({ size = 18 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect x="3" y="4.5" width="18" height="17" rx="2" />
+            <path d="M16 2.5v4" />
+            <path d="M8 2.5v4" />
+            <path d="M3 9h18" />
+        </svg>
+    );
+}
+
+function FilterIcon({ size = 18 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M4 6h16" />
+            <path d="M7 12h10" />
+            <path d="M10 18h4" />
+        </svg>
+    );
+}
+
+function RefreshIcon({ size = 18 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M20 11a8 8 0 0 0-14.9-3" />
+            <path d="M4 5v4h4" />
+            <path d="M4 13a8 8 0 0 0 14.9 3" />
+            <path d="M20 19v-4h-4" />
+        </svg>
+    );
+}
+
+function CloseIcon({ size = 16 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+        >
+            <path d="m6 6 12 12" />
+            <path d="m18 6-12 12" />
+        </svg>
+    );
+}
+
+function TrendingUpIcon({ size = 18 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="m4 16 5-5 4 3 7-8" />
+            <path d="M15 6h5v5" />
+        </svg>
+    );
+}
+
+function TrendingDownIcon({ size = 18 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="m4 8 5 5 4-3 7 8" />
+            <path d="M15 18h5v-5" />
+        </svg>
+    );
+}
+
+function EmptyIcon({ size = 28 }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M4 19V5" />
+            <path d="M4 19h16" />
+            <path d="M7 15h2" />
+            <path d="M11 12h2" />
+            <path d="M15 9h2" />
+        </svg>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   Helpers
+───────────────────────────────────────────── */
+
+function formatNumber(value, decimals = 0) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return "0";
+    }
+
+    return number.toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    });
+}
+
+function formatMoney(value) {
+    return `Rs. ${formatNumber(value, 0)}`;
+}
+
+function formatMileage(value) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number) || number <= 0) {
+        return "—";
+    }
+
+    return `${formatNumber(number, 1)} km/L`;
+}
+
+function getVehicleName(vehicle) {
+    if (!vehicle) {
+        return "Unknown vehicle";
+    }
+
+    return vehicle.name || vehicle.registration || "Unnamed vehicle";
+}
+
+function getVehicleRegistration(vehicle) {
+    if (!vehicle) {
+        return "";
+    }
+
+    return vehicle.registration || "";
+}
+
+/* ─────────────────────────────────────────────
+   Reusable UI
+───────────────────────────────────────────── */
+
+function AnalyticsSection({ eyebrow, title, description, children, last = false }) {
+    return (
+        <section
+            className={`analytics-section ${
+                last ? "analytics-section-last" : ""
+            }`}
+        >
+            <div className="analytics-section-header">
+                <div>
+                    {eyebrow && (
+                        <span className="analytics-section-eyebrow">
+                            {eyebrow}
+                        </span>
+                    )}
+
+                    <h2>{title}</h2>
+
+                    {description && <p>{description}</p>}
+                </div>
+            </div>
+
+            {children}
+        </section>
+    );
+}
+
+function AnalyticsStatCard({
+    icon,
+    label,
+    value,
+    description,
+    subtle,
+}) {
+    return (
+        <article className="analytics-stat-card">
+            <div className="analytics-stat-top">
+                <div className="analytics-stat-icon">
+                    {icon}
+                </div>
+
+                {subtle && (
+                    <span className="analytics-stat-subtle">
+                        {subtle}
+                    </span>
+                )}
+            </div>
+
+            <span className="analytics-stat-label">
+                {label}
+            </span>
+
+            <div className="analytics-stat-value-row">
+                <strong>{value}</strong>
+            </div>
+
+            {description && (
+                <span className="analytics-stat-description">
+                    {description}
+                </span>
+            )}
+        </article>
+    );
+}
+
+function AnalyticsCard({
+    title,
+    description,
+    icon,
+    children,
+    className = "",
+}) {
+    return (
+        <article className={`analytics-card ${className}`}>
+            <div className="analytics-card-heading">
+                <div className="analytics-card-icon">
+                    {icon}
+                </div>
+
+                <div className="analytics-card-title-group">
+                    <h3>{title}</h3>
+
+                    {description && (
+                        <p>{description}</p>
+                    )}
+                </div>
+            </div>
+
+            {children}
+        </article>
+    );
+}
+
+function EmptyState({
+    message = "There is no data available for the selected filters.",
+}) {
+    return (
+        <div className="analytics-chart-empty">
+            <div className="analytics-empty-icon">
+                <EmptyIcon />
+            </div>
+
+            <span>{message}</span>
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   Simple chart components
+───────────────────────────────────────────── */
+
+function BarChart({ data, valueKey, labelKey, money = false }) {
+    if (!data || data.length === 0) {
+        return <EmptyState />;
+    }
+
+    const values = data.map((item) => Number(item[valueKey]) || 0);
+    const max = Math.max(...values, 1);
+
+    return (
+        <div className="analytics-bar-chart">
+            {data.map((item, index) => {
+                const value = Number(item[valueKey]) || 0;
+                const percentage = Math.max(
+                    3,
+                    (value / max) * 100
+                );
+
+                return (
+                    <div
+                        className="analytics-bar-item"
+                        key={`${labelKey}-${index}`}
+                    >
+                        <div className="analytics-bar-label-row">
+                            <span>
+                                {item[labelKey]}
+                            </span>
+
+                            <strong>
+                                {money
+                                    ? formatMoney(value)
+                                    : formatNumber(value)}
+                            </strong>
+                        </div>
+
+                        <div className="analytics-bar-track">
+                            <div
+                                className="analytics-bar-fill"
+                                style={{
+                                    width: `${percentage}%`,
+                                }}
+                            />
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function LineChart({ data, valueKey, labelKey, money = false }) {
+    if (!data || data.length === 0) {
+        return <EmptyState />;
+    }
+
+    const values = data.map((item) => Number(item[valueKey]) || 0);
+
+    const max = Math.max(...values, 1);
+    const min = Math.min(...values, 0);
+
+    const width = 900;
+    const height = 300;
+    const paddingX = 24;
+    const paddingY = 24;
+
+    const usableWidth = width - paddingX * 2;
+    const usableHeight = height - paddingY * 2;
+
+    const range = max - min || 1;
+
+    const points = data.map((item, index) => {
+        const x =
+            data.length === 1
+                ? width / 2
+                : paddingX +
+                  (index / (data.length - 1)) *
+                      usableWidth;
+
+        const y =
+            paddingY +
+            ((max - (Number(item[valueKey]) || 0)) /
+                range) *
+                usableHeight;
+
+        return {
+            x,
+            y,
+            item,
+        };
+    });
+
+    const polyline = points
+        .map((point) => `${point.x},${point.y}`)
+        .join(" ");
+
+    return (
+        <div className="analytics-line-chart">
+            <svg
+                className="analytics-line-svg"
+                viewBox={`0 0 ${width} ${height}`}
+                preserveAspectRatio="none"
+            >
+                <line
+                    x1={paddingX}
+                    y1={height - paddingY}
+                    x2={width - paddingX}
+                    y2={height - paddingY}
+                    className="analytics-chart-axis"
+                />
+
+                <line
+                    x1={paddingX}
+                    y1={paddingY}
+                    x2={paddingX}
+                    y2={height - paddingY}
+                    className="analytics-chart-axis"
+                />
+
+                <polyline
+                    points={polyline}
+                    fill="none"
+                    className="analytics-line"
+                />
+
+                {points.map((point, index) => (
+                    <circle
+                        key={index}
+                        cx={point.x}
+                        cy={point.y}
+                        r="4"
+                        className="analytics-line-point"
+                    />
+                ))}
+            </svg>
+
+            <div className="analytics-line-labels">
+                {points.map((point, index) => (
+                    <div
+                        className="analytics-line-label"
+                        key={index}
+                    >
+                        <span>
+                            {point.item[labelKey]}
+                        </span>
+
+                        <strong>
+                            {money
+                                ? formatMoney(
+                                      Number(
+                                          point.item[
+                                              valueKey
+                                          ]
+                                      ) || 0
+                                  )
+                                : formatNumber(
+                                      Number(
+                                          point.item[
+                                              valueKey
+                                          ]
+                                      ) || 0
+                                  )}
+                        </strong>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   Main Analytics page
+───────────────────────────────────────────── */
 
 function Analytics() {
     const [data, setData] = useState(null);
@@ -27,319 +609,252 @@ function Analytics() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        async function loadOptions() {
-            try {
-                const [
-                    vehiclesResponse,
-                    tripsResponse
-                ] = await Promise.all([
-                    apiFetch("/vehicles"),
-                    apiFetch("/trips")
-                ]);
+    async function loadFilters() {
+        const [vehicleData, tripData] =
+            await Promise.all([
+                apiFetch("/vehicles"),
+                apiFetch("/trips"),
+            ]);
 
-                if (!vehiclesResponse.ok) {
-                    throw new Error(
-                        "Failed to load vehicles"
-                    );
-                }
+        setVehicles(
+            Array.isArray(vehicleData)
+                ? vehicleData
+                : vehicleData?.vehicles || []
+        );
 
-                if (!tripsResponse.ok) {
-                    throw new Error(
-                        "Failed to load trips"
-                    );
-                }
+        setTrips(
+            Array.isArray(tripData)
+                ? tripData
+                : tripData?.trips || []
+        );
+    }
 
-                const vehicleData =
-                    await vehiclesResponse.json();
-
-                const tripData =
-                    await tripsResponse.json();
-
-                setVehicles(
-                    (
-                        vehicleData.vehicles ||
-                        vehicleData ||
-                        []
-                    ).filter(
-                        (vehicle) =>
-                            Number(vehicle.active) === 1
-                    )
-                );
-
-                setTrips(
-                    tripData.trips ||
-                    tripData ||
-                    []
-                );
-            } catch (err) {
-                setError(err.message);
+    async function loadAnalytics({
+        showLoading = true,
+    } = {}) {
+        try {
+            if (showLoading) {
+                setLoading(true);
+            } else {
+                setRefreshing(true);
             }
+
+            setError("");
+
+            const params = new URLSearchParams();
+
+            if (selectedVehicleId) {
+                params.set(
+                    "vehicleId",
+                    selectedVehicleId
+                );
+            }
+
+            if (selectedTripId) {
+                params.set(
+                    "tripId",
+                    selectedTripId
+                );
+            }
+
+            const query = params.toString();
+
+            const result = await apiFetch(
+                `/analytics${query ? `?${query}` : ""}`
+            );
+
+            setData(result);
+        } catch (err) {
+            console.error("Analytics loading error:", err);
+
+            setError(
+                err?.message ||
+                    "Unable to load analytics right now."
+            );
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }
+
+    useEffect(() => {
+        async function initialise() {
+            try {
+                await loadFilters();
+            } catch (err) {
+                console.error(
+                    "Analytics filters loading error:",
+                    err
+                );
+
+                setError(
+                    err?.message ||
+                        "Unable to load analytics filters."
+                );
+
+                setLoading(false);
+                return;
+            }
+
+            await loadAnalytics();
         }
 
-        loadOptions();
+        initialise();
     }, []);
 
     useEffect(() => {
-        async function loadAnalytics() {
-            try {
-                if (data) {
-                    setRefreshing(true);
-                } else {
-                    setLoading(true);
-                }
-
-                setError("");
-
-                const params =
-                    new URLSearchParams();
-
-                if (selectedVehicleId) {
-                    params.set(
-                        "vehicleId",
-                        selectedVehicleId
-                    );
-                }
-
-                if (selectedTripId) {
-                    params.set(
-                        "tripId",
-                        selectedTripId
-                    );
-                }
-
-                const queryString =
-                    params.toString();
-
-                const endpoint =
-                    queryString
-                        ? `/analytics?${queryString}`
-                        : "/analytics";
-
-                const response =
-                    await apiFetch(endpoint);
-
-                if (!response.ok) {
-                    const message =
-                        await response.text();
-
-                    throw new Error(
-                        message ||
-                        "Failed to load analytics"
-                    );
-                }
-
-                const result =
-                    await response.json();
-
-                setData(result);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-                setRefreshing(false);
-            }
-        }
-
-        loadAnalytics();
-    }, [
-        selectedVehicleId,
-        selectedTripId
-    ]);
-
-    useEffect(() => {
-        if (
-            !selectedTripId ||
-            !selectedVehicleId
-        ) {
+        if (loading) {
             return;
         }
 
-        const selectedTrip =
-            trips.find(
-                (trip) =>
-                    Number(trip.id) ===
-                    Number(selectedTripId)
-            );
+        loadAnalytics({
+            showLoading: false,
+        });
+    }, [selectedVehicleId, selectedTripId]);
 
-        if (
-            selectedTrip &&
-            Number(selectedTrip.vehicleId) !==
-                Number(selectedVehicleId)
-        ) {
+    const activeVehicles = useMemo(
+        () =>
+            vehicles.filter(
+                (vehicle) =>
+                    vehicle.active !== false
+            ),
+        [vehicles]
+    );
+
+    const availableTrips = useMemo(() => {
+        if (!selectedVehicleId) {
+            return trips;
+        }
+
+        return trips.filter(
+            (trip) =>
+                String(trip.vehicleId) ===
+                String(selectedVehicleId)
+        );
+    }, [trips, selectedVehicleId]);
+
+    useEffect(() => {
+        if (!selectedTripId) {
+            return;
+        }
+
+        const exists = availableTrips.some(
+            (trip) =>
+                String(trip.id) ===
+                String(selectedTripId)
+        );
+
+        if (!exists) {
             setSelectedTripId("");
         }
-    }, [
-        selectedVehicleId,
-        selectedTripId,
-        trips
-    ]);
+    }, [availableTrips, selectedTripId]);
 
-    const availableTrips =
-        selectedVehicleId
-            ? trips.filter(
-                  (trip) =>
-                      Number(trip.vehicleId) ===
-                      Number(selectedVehicleId)
-              )
-            : trips;
+    const selectedVehicle = useMemo(
+        () =>
+            vehicles.find(
+                (vehicle) =>
+                    String(vehicle.id) ===
+                    String(selectedVehicleId)
+            ),
+        [vehicles, selectedVehicleId]
+    );
 
-    if (loading && !data) {
+    const selectedTrip = useMemo(
+        () =>
+            trips.find(
+                (trip) =>
+                    String(trip.id) ===
+                    String(selectedTripId)
+            ),
+        [trips, selectedTripId]
+    );
+
+    function clearFilters() {
+        setSelectedVehicleId("");
+        setSelectedTripId("");
+    }
+
+    const spendingByMonth =
+        data?.spendingByMonth || [];
+
+    const spendingByVehicle =
+        data?.spendingByVehicle || [];
+
+    const mileageByVehicle =
+        data?.mileageByVehicle || [];
+
+    const mileageTrend =
+        data?.mileageTrend || [];
+
+    const fuelPriceHistory =
+        data?.fuelPriceHistory || [];
+
+    const tripAnalytics =
+        data?.tripAnalytics || [];
+
+    const overview = data?.overview || {};
+
+    const totalSpending =
+        overview.totalSpending ??
+        data?.summary?.totalSpending ??
+        0;
+
+    const totalFuel =
+        overview.totalFuel ??
+        data?.summary?.totalFuel ??
+        0;
+
+    const totalDistance =
+        overview.totalDistance ??
+        data?.summary?.totalDistance ??
+        0;
+
+    const averageMileage =
+        overview.averageMileage ??
+        data?.summary?.averageMileage ??
+        0;
+
+    const totalVehicles =
+        overview.totalVehicles ??
+        data?.summary?.totalVehicles ??
+        activeVehicles.length;
+
+    const totalTrips =
+        overview.totalTrips ??
+        data?.summary?.totalTrips ??
+        trips.length;
+
+    if (loading) {
         return (
             <main className="page analytics-page">
                 <div className="analytics-loading">
                     <div className="analytics-loading-icon">
-                        <ChartIcon />
+                        <ChartIcon size={28} />
                     </div>
 
                     <h2>Loading analytics</h2>
 
                     <p>
-                        Preparing your fuel and
-                        vehicle insights...
+                        Preparing your fuel and vehicle
+                        insights...
                     </p>
                 </div>
             </main>
         );
     }
 
-    if (error && !data) {
-        return (
-            <main className="page analytics-page">
-                <div className="analytics-page-header">
-                    <div>
-                        <span className="analytics-eyebrow">
-                            INSIGHTS
-                        </span>
-
-                        <h1>Analytics</h1>
-
-                        <p>
-                            Understand your fuel
-                            spending, mileage and
-                            vehicle performance.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="analytics-error">
-                    <div className="analytics-error-icon">
-                        <AlertIcon />
-                    </div>
-
-                    <div>
-                        <h3>
-                            Unable to load
-                            analytics
-                        </h3>
-
-                        <p>{error}</p>
-                    </div>
-                </div>
-            </main>
-        );
-    }
-
-    if (!data) {
-        return null;
-    }
-
-    const summary = data.summary || {};
-
-    const spendingByMonth =
-        data.spendingByMonth || [];
-
-    const spendingByVehicle =
-        data.spendingByVehicle || [];
-
-    const mileageByVehicle =
-        data.mileageByVehicle || [];
-
-    const mileageTrend =
-        data.mileageTrend || [];
-
-    const fuelPriceHistory =
-        data.fuelPriceHistory || [];
-
-    const tripAnalytics =
-        data.tripAnalytics || [];
-
-    function formatNumber(
-        value,
-        decimals = 2
-    ) {
-        if (
-            value === null ||
-            value === undefined ||
-            Number.isNaN(Number(value))
-        ) {
-            return "—";
-        }
-
-        return Number(value).toLocaleString(
-            undefined,
-            {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: decimals
-            }
-        );
-    }
-
-    function formatMoney(value) {
-        if (
-            value === null ||
-            value === undefined
-        ) {
-            return "Rs 0";
-        }
-
-        return `Rs ${Number(
-            value
-        ).toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
-        })}`;
-    }
-
-    function formatMileage(value) {
-        if (
-            value === null ||
-            value === undefined
-        ) {
-            return "—";
-        }
-
-        return `${formatNumber(value)} km/L`;
-    }
-
-    const selectedVehicle =
-        vehicles.find(
-            (vehicle) =>
-                Number(vehicle.id) ===
-                Number(selectedVehicleId)
-        );
-
-    const selectedTrip =
-        trips.find(
-            (trip) =>
-                Number(trip.id) ===
-                Number(selectedTripId)
-        );
-
     return (
         <main className="page analytics-page">
-
-            {/* HEADER */}
-
-            <div className="analytics-page-header">
-                <div>
+            {/* Page header */}
+            <header className="analytics-page-header">
+                <div className="analytics-page-heading">
                     <span className="analytics-eyebrow">
-                        INSIGHTS
+                        Insights & reports
                     </span>
 
                     <div className="analytics-title-row">
                         <div className="analytics-title-icon">
-                            <ChartIcon />
+                            <ChartIcon size={25} />
                         </div>
 
                         <div>
@@ -354,55 +869,79 @@ function Analytics() {
                     </div>
                 </div>
 
-                {refreshing && (
-                    <div className="analytics-refreshing">
-                        <span className="analytics-refresh-dot" />
-                        Updating
-                    </div>
-                )}
-            </div>
+                <button
+                    type="button"
+                    className="analytics-refresh-button"
+                    onClick={() =>
+                        loadAnalytics({
+                            showLoading: false,
+                        })
+                    }
+                    disabled={refreshing}
+                >
+                    <span
+                        className={
+                            refreshing
+                                ? "analytics-refresh-icon spinning"
+                                : "analytics-refresh-icon"
+                        }
+                    >
+                        <RefreshIcon size={17} />
+                    </span>
 
-            {/* ERROR WHILE REFRESHING */}
+                    <span>
+                        {refreshing
+                            ? "Refreshing..."
+                            : "Refresh"}
+                    </span>
+                </button>
+            </header>
 
-            {error && data && (
+            {error && (
                 <div className="analytics-inline-error">
-                    <AlertIcon />
-                    <span>{error}</span>
+                    <span>
+                        {error}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            loadAnalytics({
+                                showLoading: false,
+                            })
+                        }
+                    >
+                        Try again
+                    </button>
                 </div>
             )}
 
-            {/* FILTERS */}
-
-            <section className="analytics-filter-card">
+            {/* Filters */}
+            <div className="analytics-filter-card">
                 <div className="analytics-filter-heading">
                     <div className="analytics-filter-icon">
-                        <FilterIcon />
+                        <FilterIcon size={18} />
                     </div>
 
                     <div>
-                        <h2>
-                            Filter your analytics
-                        </h2>
+                        <strong>
+                            Filter analytics
+                        </strong>
 
-                        <p>
-                            Focus on a vehicle or
-                            specific trip to explore
-                            detailed performance.
-                        </p>
+                        <span>
+                            Narrow your insights by
+                            vehicle or trip.
+                        </span>
                     </div>
                 </div>
 
                 <div className="analytics-filter-controls">
-
-                    <div className="analytics-filter-field">
-                        <label>
-                            Vehicle
-                        </label>
+                    <label className="analytics-filter-field">
+                        <span>Vehicle</span>
 
                         <div className="analytics-select-wrapper">
-                            <CarIcon />
-
                             <select
+                                className="analytics-select"
                                 value={
                                     selectedVehicleId
                                 }
@@ -411,13 +950,12 @@ function Analytics() {
                                         event.target.value
                                     )
                                 }
-                                className="analytics-select"
                             >
                                 <option value="">
-                                    All Vehicles
+                                    All vehicles
                                 </option>
 
-                                {vehicles.map(
+                                {activeVehicles.map(
                                     (vehicle) => (
                                         <option
                                             key={
@@ -427,27 +965,31 @@ function Analytics() {
                                                 vehicle.id
                                             }
                                         >
-                                            {vehicle.name}
-
-                                            {vehicle.registration
-                                                ? ` — ${vehicle.registration}`
+                                            {getVehicleName(
+                                                vehicle
+                                            )}
+                                            {getVehicleRegistration(
+                                                vehicle
+                                            )
+                                                ? ` — ${getVehicleRegistration(
+                                                      vehicle
+                                                  )}`
                                                 : ""}
                                         </option>
                                     )
                                 )}
                             </select>
                         </div>
-                    </div>
+                    </label>
 
-                    <div className="analytics-filter-field">
-                        <label>
-                            Trip
-                        </label>
+                    <div className="analytics-filter-separator" />
+
+                    <label className="analytics-filter-field">
+                        <span>Trip</span>
 
                         <div className="analytics-select-wrapper">
-                            <RouteIcon />
-
                             <select
+                                className="analytics-select"
                                 value={
                                     selectedTripId
                                 }
@@ -456,53 +998,35 @@ function Analytics() {
                                         event.target.value
                                     )
                                 }
-                                className="analytics-select"
                             >
                                 <option value="">
-                                    All Trips
+                                    All trips
                                 </option>
 
                                 {availableTrips.map(
                                     (trip) => (
                                         <option
-                                            key={
-                                                trip.id
-                                            }
-                                            value={
-                                                trip.id
-                                            }
+                                            key={trip.id}
+                                            value={trip.id}
                                         >
-                                            {trip.name} —{" "}
-                                            {
-                                                trip.startLocation
-                                            }{" "}
-                                            →{" "}
-                                            {
-                                                trip.destination
-                                            }
+                                            {trip.name ||
+                                                "Unnamed trip"}
                                         </option>
                                     )
                                 )}
                             </select>
                         </div>
-                    </div>
+                    </label>
 
                     {(selectedVehicleId ||
                         selectedTripId) && (
                         <button
                             type="button"
-                            onClick={() => {
-                                setSelectedVehicleId(
-                                    ""
-                                );
-                                setSelectedTripId(
-                                    ""
-                                );
-                            }}
                             className="analytics-clear-button"
+                            onClick={clearFilters}
                         >
-                            <CloseIcon />
-                            Clear filters
+                            <CloseIcon size={14} />
+                            Clear
                         </button>
                     )}
                 </div>
@@ -513,547 +1037,342 @@ function Analytics() {
                         <span className="analytics-active-dot" />
 
                         <span>
-                            Showing analytics for
+                            Showing:
                         </span>
 
                         {selectedVehicle && (
                             <strong>
-                                {
-                                    selectedVehicle.name
-                                }
+                                {getVehicleName(
+                                    selectedVehicle
+                                )}
                             </strong>
                         )}
 
-                        {selectedVehicle &&
-                            selectedTrip && (
-                                <span className="analytics-filter-separator">
+                        {selectedTrip && (
+                            <>
+                                <span>
                                     /
                                 </span>
-                            )}
 
-                        {selectedTrip && (
-                            <strong>
-                                {selectedTrip.name}
-                            </strong>
+                                <strong>
+                                    {selectedTrip.name ||
+                                        "Unnamed trip"}
+                                </strong>
+                            </>
                         )}
                     </div>
                 )}
-            </section>
+            </div>
 
-            {/* OVERVIEW */}
-
+            {/* Overview */}
             <AnalyticsSection
-                eyebrow="OVERVIEW"
-                title="Your fuel overview"
-                description="The numbers that matter most, all in one place."
+                eyebrow="Overview"
+                title="Your numbers at a glance"
+                description="A quick snapshot of your fuel activity."
             >
                 <div className="analytics-stat-grid">
-
                     <AnalyticsStatCard
-                        icon={<MoneyIcon />}
-                        label="Total Spending"
+                        icon={
+                            <MoneyIcon size={21} />
+                        }
+                        label="Total fuel cost"
                         value={formatMoney(
-                            summary.totalSpending
+                            totalSpending
                         )}
-                        description="Total fuel expenses"
+                        description="Total recorded fuel spending"
                     />
 
                     <AnalyticsStatCard
-                        icon={<FuelIcon />}
-                        label="Fuel Used"
+                        icon={
+                            <FuelIcon size={21} />
+                        }
+                        label="Fuel consumed"
                         value={`${formatNumber(
-                            summary.totalFuel
+                            totalFuel,
+                            1
                         )} L`}
-                        description="Total fuel purchased"
+                        description="Total recorded litres"
                     />
 
                     <AnalyticsStatCard
-                        icon={<RouteIcon />}
-                        label="Distance"
+                        icon={
+                            <RouteIcon size={21} />
+                        }
+                        label="Distance covered"
                         value={`${formatNumber(
-                            summary.totalDistance
+                            totalDistance,
+                            0
                         )} km`}
-                        description="Distance tracked"
+                        description="Recorded driving distance"
                     />
 
                     <AnalyticsStatCard
-                        icon={<GaugeIcon />}
-                        label="Average Mileage"
+                        icon={
+                            <GaugeIcon size={21} />
+                        }
+                        label="Average mileage"
                         value={formatMileage(
-                            summary.averageMileage
+                            averageMileage
                         )}
-                        description="Overall fuel efficiency"
+                        description="Across available mileage data"
                     />
 
+                    <AnalyticsStatCard
+                        icon={
+                            <CarIcon size={21} />
+                        }
+                        label="Vehicles"
+                        value={formatNumber(
+                            totalVehicles
+                        )}
+                        description="Vehicles included in the data"
+                    />
+
+                    <AnalyticsStatCard
+                        icon={
+                            <CalendarIcon size={21} />
+                        }
+                        label="Trips"
+                        value={formatNumber(
+                            totalTrips
+                        )}
+                        description="Recorded trips"
+                    />
                 </div>
             </AnalyticsSection>
 
-            {/* SPENDING */}
-
+            {/* Spending */}
             <AnalyticsSection
-                eyebrow="SPENDING"
-                title="Fuel spending"
-                description="See how your fuel expenses change over time and across vehicles."
+                eyebrow="Fuel spending"
+                title="Where your fuel budget goes"
+                description="Track spending patterns across time and vehicles."
             >
                 <div className="analytics-chart-grid">
-
-                    <AnalyticsChartCard
-                        title="Monthly Spending"
-                        description="Fuel expenditure by month"
-                        icon={<CalendarIcon />}
+                    <AnalyticsCard
+                        title="Monthly spending"
+                        description="Fuel cost grouped by month"
+                        icon={
+                            <MoneyIcon size={19} />
+                        }
                     >
-                        {spendingByMonth.length >
-                        0 ? (
-                            <ResponsiveContainer
-                                width="100%"
-                                height={300}
-                            >
-                                <BarChart
-                                    data={
-                                        spendingByMonth
-                                    }
-                                    margin={{
-                                        top: 10,
-                                        right: 10,
-                                        left: 0,
-                                        bottom: 0
-                                    }}
-                                >
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        vertical={false}
-                                    />
+                        <div className="chart-container">
+                            <BarChart
+                                data={
+                                    spendingByMonth
+                                }
+                                valueKey="totalSpending"
+                                labelKey="month"
+                                money
+                            />
+                        </div>
+                    </AnalyticsCard>
 
-                                    <XAxis
-                                        dataKey="month"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tickMargin={10}
-                                    />
-
-                                    <YAxis
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tickFormatter={(
-                                            value
-                                        ) =>
-                                            `Rs ${Number(
-                                                value
-                                            ).toLocaleString()}`
-                                        }
-                                    />
-
-                                    <Tooltip
-                                        cursor={{
-                                            opacity: 0.08
-                                        }}
-                                        formatter={(
-                                            value
-                                        ) =>
-                                            formatMoney(
-                                                value
-                                            )
-                                        }
-                                    />
-
-                                    <Bar
-                                        dataKey="spending"
-                                        name="Spending"
-                                        radius={[
-                                            6,
-                                            6,
-                                            0,
-                                            0
-                                        ]}
-                                        maxBarSize={48}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <EmptyState />
-                        )}
-                    </AnalyticsChartCard>
-
-                    <AnalyticsChartCard
-                        title="Spending by Vehicle"
-                        description="Compare fuel costs between vehicles"
-                        icon={<CarIcon />}
+                    <AnalyticsCard
+                        title="Spending by vehicle"
+                        description="Compare total fuel costs"
+                        icon={
+                            <CarIcon size={19} />
+                        }
                     >
-                        {spendingByVehicle.length >
-                        0 ? (
-                            <ResponsiveContainer
-                                width="100%"
-                                height={300}
-                            >
-                                <BarChart
-                                    data={
-                                        spendingByVehicle
-                                    }
-                                    margin={{
-                                        top: 10,
-                                        right: 10,
-                                        left: 0,
-                                        bottom: 0
-                                    }}
-                                >
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        vertical={false}
-                                    />
-
-                                    <XAxis
-                                        dataKey="vehicleName"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tickMargin={10}
-                                    />
-
-                                    <YAxis
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tickFormatter={(
-                                            value
-                                        ) =>
-                                            `Rs ${Number(
-                                                value
-                                            ).toLocaleString()}`
-                                        }
-                                    />
-
-                                    <Tooltip
-                                        cursor={{
-                                            opacity: 0.08
-                                        }}
-                                        formatter={(
-                                            value
-                                        ) =>
-                                            formatMoney(
-                                                value
-                                            )
-                                        }
-                                    />
-
-                                    <Bar
-                                        dataKey="spending"
-                                        name="Spending"
-                                        radius={[
-                                            6,
-                                            6,
-                                            0,
-                                            0
-                                        ]}
-                                        maxBarSize={48}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <EmptyState />
-                        )}
-                    </AnalyticsChartCard>
-
+                        <div className="chart-container">
+                            <BarChart
+                                data={
+                                    spendingByVehicle
+                                }
+                                valueKey="totalSpending"
+                                labelKey="vehicle"
+                                money
+                            />
+                        </div>
+                    </AnalyticsCard>
                 </div>
             </AnalyticsSection>
 
-            {/* MILEAGE */}
-
+            {/* Mileage */}
             <AnalyticsSection
-                eyebrow="EFFICIENCY"
-                title="Mileage & efficiency"
-                description="Track how efficiently your vehicles are using fuel."
+                eyebrow="Mileage"
+                title="Track fuel efficiency"
+                description="See how efficiently your vehicles are being driven."
             >
-                <AnalyticsChartCard
-                    title="Mileage Trend"
-                    description="Fuel efficiency across your entries"
-                    icon={<GaugeIcon />}
-                    className="analytics-full-chart"
-                >
-                    {mileageTrend.length >
-                    0 ? (
-                        <ResponsiveContainer
-                            width="100%"
-                            height={320}
-                        >
+                <div className="analytics-chart-grid">
+                    <AnalyticsCard
+                        title="Mileage trend"
+                        description="Fuel efficiency over time"
+                        icon={
+                            <TrendingUpIcon size={19} />
+                        }
+                        className="analytics-full-chart"
+                    >
+                        <div className="chart-container">
                             <LineChart
-                                data={
-                                    mileageTrend
-                                }
-                                margin={{
-                                    top: 10,
-                                    right: 10,
-                                    left: 0,
-                                    bottom: 0
-                                }}
-                            >
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    vertical={false}
-                                />
+                                data={mileageTrend}
+                                valueKey="mileage"
+                                labelKey="month"
+                            />
+                        </div>
+                    </AnalyticsCard>
+                </div>
 
-                                <XAxis
-                                    dataKey="date"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tickMargin={10}
-                                />
-
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-
-                                <Tooltip
-                                    formatter={(
-                                        value
-                                    ) =>
-                                        `${formatNumber(
-                                            value
-                                        )} km/L`
-                                    }
-                                />
-
-                                <Line
-                                    type="monotone"
-                                    dataKey="mileage"
-                                    name="Mileage"
-                                    strokeWidth={2.5}
-                                    dot={{
-                                        r: 3
-                                    }}
-                                    activeDot={{
-                                        r: 5
-                                    }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <EmptyState />
-                    )}
-                </AnalyticsChartCard>
-
-                {/* VEHICLE EFFICIENCY */}
-
-                <div className="analytics-card vehicle-efficiency-card">
+                <div className="vehicle-efficiency-card">
                     <div className="analytics-card-heading">
+                        <div className="analytics-card-icon">
+                            <GaugeIcon size={19} />
+                        </div>
+
                         <div className="analytics-card-title-group">
-                            <div className="analytics-card-icon">
-                                <CarIcon />
-                            </div>
+                            <h3>
+                                Vehicle efficiency
+                            </h3>
 
-                            <div>
-                                <h3>
-                                    Vehicle Efficiency
-                                </h3>
-
-                                <p>
-                                    Compare the fuel
-                                    efficiency of each
-                                    vehicle.
-                                </p>
-                            </div>
+                            <p>
+                                Mileage comparison across
+                                your vehicles.
+                            </p>
                         </div>
                     </div>
 
-                    {mileageByVehicle.length >
-                    0 ? (
+                    {mileageByVehicle.length === 0 ? (
+                        <EmptyState />
+                    ) : (
                         <div className="vehicle-efficiency-grid">
                             {mileageByVehicle.map(
-                                (vehicle) => {
-                                    const average =
+                                (vehicle, index) => {
+                                    const mileage =
+                                        Number(
+                                            vehicle.mileage
+                                        ) ||
                                         Number(
                                             vehicle.averageMileage
-                                        ) || 0;
-
-                                    const best =
-                                        Number(
-                                            vehicle.bestMileage
-                                        ) || 0;
-
-                                    const worst =
-                                        Number(
-                                            vehicle.worstMileage
-                                        ) || 0;
-
-                                    const maxMileage =
-                                        Math.max(
-                                            best,
-                                            average,
-                                            1
-                                        );
+                                        ) ||
+                                        0;
 
                                     const averageWidth =
                                         Math.min(
-                                            (average /
-                                                maxMileage) *
-                                                100,
-                                            100
+                                            100,
+                                            Math.max(
+                                                5,
+                                                mileage *
+                                                    5
+                                            )
                                         );
 
                                     return (
                                         <div
                                             className="vehicle-efficiency-item"
                                             key={
-                                                vehicle.vehicleId
+                                                vehicle.vehicleId ||
+                                                vehicle.id ||
+                                                index
                                             }
                                         >
                                             <div className="vehicle-efficiency-top">
                                                 <div className="vehicle-efficiency-identity">
                                                     <div className="vehicle-efficiency-avatar">
-                                                        <CarIcon />
+                                                        <CarIcon
+                                                            size={
+                                                                17
+                                                            }
+                                                        />
                                                     </div>
 
                                                     <div>
-                                                        <h4>
-                                                            {
-                                                                vehicle.vehicleName
-                                                            }
-                                                        </h4>
+                                                        <strong>
+                                                            {vehicle.vehicle ||
+                                                                vehicle.vehicleName ||
+                                                                "Unknown vehicle"}
+                                                        </strong>
 
-                                                        {vehicle.vehicleRegistration && (
+                                                        {vehicle.registration && (
                                                             <span>
                                                                 {
-                                                                    vehicle.vehicleRegistration
+                                                                    vehicle.registration
                                                                 }
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
 
-                                                <div className="vehicle-average">
-                                                    <strong>
-                                                        {formatNumber(
-                                                            average
-                                                        )}
-                                                    </strong>
-
-                                                    <small>
-                                                        km/L
-                                                    </small>
-                                                </div>
-                                            </div>
-
-                                            <div className="vehicle-efficiency-label">
-                                                <span>
-                                                    Average
-                                                    efficiency
-                                                </span>
-
-                                                <span>
+                                                <strong className="vehicle-average">
                                                     {formatMileage(
-                                                        average
+                                                        mileage
                                                     )}
-                                                </span>
+                                                </strong>
                                             </div>
 
                                             <div className="vehicle-efficiency-bar">
                                                 <div
                                                     className="vehicle-efficiency-bar-fill"
                                                     style={{
-                                                        width: `${averageWidth}%`
+                                                        width: `${averageWidth}%`,
                                                     }}
                                                 />
                                             </div>
 
                                             <div className="vehicle-efficiency-comparison">
-                                                <div>
-                                                    <span>
-                                                        Best
-                                                    </span>
+                                                <span>
+                                                    Fuel
+                                                    efficiency
+                                                </span>
 
-                                                    <strong>
-                                                        {formatMileage(
-                                                            best
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                                <div>
-                                                    <span>
-                                                        Lowest
-                                                    </span>
-
-                                                    <strong>
-                                                        {formatMileage(
-                                                            worst
-                                                        )}
-                                                    </strong>
-                                                </div>
+                                                <span>
+                                                    {formatNumber(
+                                                        mileage,
+                                                        1
+                                                    )}{" "}
+                                                    km/L
+                                                </span>
                                             </div>
                                         </div>
                                     );
                                 }
                             )}
                         </div>
-                    ) : (
-                        <div className="analytics-empty-panel">
-                            <EmptyIcon />
-
-                            <span>
-                                No mileage data
-                                available.
-                            </span>
-                        </div>
                     )}
                 </div>
             </AnalyticsSection>
 
-            {/* TRIP PERFORMANCE */}
-
+            {/* Trips */}
             <AnalyticsSection
-                eyebrow="TRIPS"
-                title="Trip performance"
-                description="Compare the distance, fuel and cost of your journeys."
+                eyebrow="Trip performance"
+                title="Understand your journeys"
+                description="Review fuel use and mileage across recorded trips."
             >
-                <div className="analytics-card trip-performance-card">
-                    {tripAnalytics.length >
-                    0 ? (
+                <div className="trip-performance-card">
+                    {tripAnalytics.length === 0 ? (
+                        <EmptyState message="No trip analytics are available for the selected filters." />
+                    ) : (
                         <div className="trip-performance-list">
                             {tripAnalytics.map(
-                                (trip) => (
+                                (trip, index) => (
                                     <div
                                         className="trip-performance-item"
                                         key={
-                                            trip.id
+                                            trip.tripId ||
+                                            trip.id ||
+                                            index
                                         }
                                     >
                                         <div className="trip-performance-main">
-                                            <div className="trip-performance-title">
-                                                <div className="trip-performance-icon">
-                                                    <RouteIcon />
-                                                </div>
-
-                                                <div>
-                                                    <h3>
-                                                        {
-                                                            trip.name
-                                                        }
-                                                    </h3>
-
-                                                    <span>
-                                                        {
-                                                            trip.startLocation
-                                                        }
-
-                                                        <span className="trip-arrow">
-                                                            →
-                                                        </span>
-
-                                                        {
-                                                            trip.destination
-                                                        }
-                                                    </span>
-                                                </div>
+                                            <div className="trip-performance-icon">
+                                                <RouteIcon
+                                                    size={18}
+                                                />
                                             </div>
 
-                                            <div className="trip-performance-mileage">
-                                                <span>
-                                                    Mileage
-                                                </span>
-
-                                                <strong>
-                                                    {formatMileage(
-                                                        trip.mileage
-                                                    )}
+                                            <div>
+                                                <strong className="trip-performance-title">
+                                                    {trip.trip ||
+                                                        trip.name ||
+                                                        "Unnamed trip"}
                                                 </strong>
+
+                                                {trip.vehicle && (
+                                                    <span>
+                                                        {
+                                                            trip.vehicle
+                                                        }
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 
@@ -1065,7 +1384,8 @@ function Analytics() {
 
                                                 <strong>
                                                     {formatNumber(
-                                                        trip.distance
+                                                        trip.distance ||
+                                                            0
                                                     )}{" "}
                                                     km
                                                 </strong>
@@ -1078,7 +1398,10 @@ function Analytics() {
 
                                                 <strong>
                                                     {formatNumber(
-                                                        trip.totalFuel
+                                                        trip.fuel ||
+                                                            trip.totalFuel ||
+                                                            0,
+                                                        1
                                                     )}{" "}
                                                     L
                                                 </strong>
@@ -1091,28 +1414,22 @@ function Analytics() {
 
                                                 <strong>
                                                     {formatMoney(
-                                                        trip.totalCost
+                                                        trip.cost ||
+                                                            trip.totalSpending ||
+                                                            0
                                                     )}
                                                 </strong>
                                             </div>
 
                                             <div className="trip-metric trip-metric-highlight">
                                                 <span>
-                                                    Cost / km
+                                                    Mileage
                                                 </span>
 
                                                 <strong>
-                                                    {trip.distance >
-                                                    0
-                                                        ? formatMoney(
-                                                              Number(
-                                                                  trip.totalCost
-                                                              ) /
-                                                                  Number(
-                                                                      trip.distance
-                                                                  )
-                                                          )
-                                                        : "—"}
+                                                    {formatMileage(
+                                                        trip.mileage
+                                                    )}
                                                 </strong>
                                             </div>
                                         </div>
@@ -1120,562 +1437,129 @@ function Analytics() {
                                 )
                             )}
                         </div>
-                    ) : (
-                        <div className="analytics-empty-panel">
-                            <EmptyIcon />
-
-                            <span>
-                                No trip data
-                                available.
-                            </span>
-                        </div>
                     )}
                 </div>
             </AnalyticsSection>
 
-            {/* FUEL PRICE */}
-
+            {/* Fuel price */}
             <AnalyticsSection
-                eyebrow="FUEL PRICES"
+                eyebrow="Fuel prices"
                 title="Fuel price history"
-                description="Track how petrol prices have changed over time."
+                description="Monitor how recorded fuel prices have changed."
             >
-                <AnalyticsChartCard
-                    title="Petrol Price"
-                    description="Historical fuel price movement"
-                    icon={<FuelIcon />}
-                    className="analytics-full-chart"
+                <AnalyticsCard
+                    title="Price history"
+                    description="Recorded price per litre"
+                    icon={
+                        <FuelIcon size={19} />
+                    }
                 >
-                    {fuelPriceHistory.length >
-                    0 ? (
-                        <ResponsiveContainer
-                            width="100%"
-                            height={320}
-                        >
+                    <div className="chart-container">
+                        {fuelPriceHistory.length ===
+                        0 ? (
+                            <EmptyState message="No fuel price history is available yet." />
+                        ) : (
                             <LineChart
                                 data={
                                     fuelPriceHistory
                                 }
-                                margin={{
-                                    top: 10,
-                                    right: 10,
-                                    left: 0,
-                                    bottom: 0
-                                }}
-                            >
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    vertical={false}
-                                />
-
-                                <XAxis
-                                    dataKey="effectiveDate"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tickMargin={10}
-                                />
-
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-
-                                <Tooltip
-                                    formatter={(
-                                        value
-                                    ) =>
-                                        `Rs ${formatNumber(
-                                            value
-                                        )}`
-                                    }
-                                />
-
-                                <Line
-                                    type="monotone"
-                                    dataKey="price"
-                                    name="Petrol Price"
-                                    strokeWidth={2.5}
-                                    dot={{
-                                        r: 3
-                                    }}
-                                    activeDot={{
-                                        r: 5
-                                    }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <EmptyState />
-                    )}
-                </AnalyticsChartCard>
+                                valueKey="price"
+                                labelKey="date"
+                                money
+                            />
+                        )}
+                    </div>
+                </AnalyticsCard>
             </AnalyticsSection>
 
-            {/* QUICK INSIGHTS */}
-
+            {/* Insights */}
             <AnalyticsSection
-                eyebrow="QUICK INSIGHTS"
-                title="At a glance"
-                description="A quick summary of the selected data."
+                eyebrow="Quick insights"
+                title="A few things to keep an eye on"
+                description="Use your recorded data to spot changes in spending and efficiency."
                 last
             >
-                <div className="analytics-stat-grid">
+                <div className="analytics-insights-grid">
+                    <div className="analytics-insight-card">
+                        <div className="analytics-insight-icon">
+                            <TrendingUpIcon
+                                size={19}
+                            />
+                        </div>
 
-                    <AnalyticsStatCard
-                        icon={<ReceiptIcon />}
-                        label="Fuel Entries"
-                        value={formatNumber(
-                            summary.totalEntries,
-                            0
-                        )}
-                        description="Recorded fuel purchases"
-                    />
+                        <div>
+                            <strong>
+                                Fuel spending
+                            </strong>
 
-                    <AnalyticsStatCard
-                        icon={<MoneyIcon />}
-                        label="Average Fuel Cost"
-                        value={
-                            summary.averageFuelCost !==
-                                null &&
-                            summary.averageFuelCost !==
-                                undefined
-                                ? formatMoney(
-                                      summary.averageFuelCost
-                                  )
-                                : "—"
-                        }
-                        suffix="/ L"
-                        description="Average price per litre"
-                    />
+                            <p>
+                                Compare your monthly
+                                spending to identify
+                                periods with unusually
+                                high fuel costs.
+                            </p>
+                        </div>
+                    </div>
 
-                    <AnalyticsStatCard
-                        icon={<TrendingUpIcon />}
-                        label="Best Mileage"
-                        value={formatMileage(
-                            summary.bestMileage
-                        )}
-                        description="Highest recorded efficiency"
-                    />
+                    <div className="analytics-insight-card">
+                        <div className="analytics-insight-icon">
+                            <GaugeIcon size={19} />
+                        </div>
 
-                    <AnalyticsStatCard
-                        icon={<TrendingDownIcon />}
-                        label="Lowest Mileage"
-                        value={formatMileage(
-                            summary.worstMileage
-                        )}
-                        description="Lowest recorded efficiency"
-                    />
+                        <div>
+                            <strong>
+                                Mileage
+                            </strong>
 
+                            <p>
+                                Watch mileage trends
+                                over time to identify
+                                changes in vehicle fuel
+                                efficiency.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="analytics-insight-card">
+                        <div className="analytics-insight-icon">
+                            <FuelIcon size={19} />
+                        </div>
+
+                        <div>
+                            <strong>
+                                Fuel prices
+                            </strong>
+
+                            <p>
+                                Use your price history
+                                to understand how fuel
+                                prices affect your total
+                                spending.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="analytics-insight-card">
+                        <div className="analytics-insight-icon">
+                            <RouteIcon size={19} />
+                        </div>
+
+                        <div>
+                            <strong>
+                                Trip performance
+                            </strong>
+
+                            <p>
+                                Compare trip distance,
+                                fuel consumption and
+                                mileage to understand
+                                your journeys better.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </AnalyticsSection>
         </main>
-    );
-}
-
-function AnalyticsSection({
-    eyebrow,
-    title,
-    description,
-    children,
-    last = false
-}) {
-    return (
-        <section
-            className={`analytics-section ${
-                last
-                    ? "analytics-section-last"
-                    : ""
-            }`}
-        >
-            <div className="analytics-section-header">
-                <div>
-                    <span className="analytics-section-eyebrow">
-                        {eyebrow}
-                    </span>
-
-                    <h2>{title}</h2>
-
-                    <p>{description}</p>
-                </div>
-            </div>
-
-            {children}
-        </section>
-    );
-}
-
-function AnalyticsStatCard({
-    icon,
-    label,
-    value,
-    description,
-    suffix
-}) {
-    return (
-        <div className="analytics-stat-card">
-            <div className="analytics-stat-top">
-                <div className="analytics-stat-icon">
-                    {icon}
-                </div>
-
-                <span className="analytics-stat-label">
-                    {label}
-                </span>
-            </div>
-
-            <div className="analytics-stat-value-row">
-                <strong>
-                    {value}
-                </strong>
-
-                {suffix && (
-                    <small>
-                        {suffix}
-                    </small>
-                )}
-            </div>
-
-            <span className="analytics-stat-description">
-                {description}
-            </span>
-        </div>
-    );
-}
-
-function AnalyticsChartCard({
-    title,
-    description,
-    icon,
-    children,
-    className = ""
-}) {
-    return (
-        <div
-            className={`analytics-card analytics-chart-card ${className}`}
-        >
-            <div className="analytics-card-heading">
-                <div className="analytics-card-title-group">
-                    <div className="analytics-card-icon">
-                        {icon}
-                    </div>
-
-                    <div>
-                        <h3>{title}</h3>
-
-                        <p>{description}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="chart-container">
-                {children}
-            </div>
-        </div>
-    );
-}
-
-function EmptyState() {
-    return (
-        <div className="analytics-chart-empty">
-            <div className="analytics-empty-icon">
-                <ChartIcon />
-            </div>
-
-            <strong>
-                No data available
-            </strong>
-
-            <span>
-                There isn't enough data for
-                this selection yet.
-            </span>
-        </div>
-    );
-}
-
-/* ---------------- ICONS ---------------- */
-
-function ChartIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M4 19V5" />
-            <path d="M4 19h16" />
-            <path d="m7 15 4-5 3 3 5-7" />
-        </svg>
-    );
-}
-
-function CarIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M5 17h14" />
-            <path d="M6 17H4a1 1 0 0 1-1-1v-3a2 2 0 0 1 2-2h1l1.5-4h7L17 11h1a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1h-2" />
-            <path d="M7 17v2" />
-            <path d="M17 17v2" />
-            <circle cx="7" cy="15" r="1.2" />
-            <circle cx="17" cy="15" r="1.2" />
-        </svg>
-    );
-}
-
-function FuelIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M6 20V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v15" />
-            <path d="M6 20h12" />
-            <path d="M9 7h4" />
-            <path d="M16 7h2l2 2v7a2 2 0 0 0 2 2" />
-            <path d="M20 9v4h-2" />
-        </svg>
-    );
-}
-
-function MoneyIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <rect
-                x="3"
-                y="5"
-                width="18"
-                height="14"
-                rx="2"
-            />
-            <circle
-                cx="12"
-                cy="12"
-                r="3"
-            />
-            <path d="M7 9h.01" />
-            <path d="M17 15h.01" />
-        </svg>
-    );
-}
-
-function RouteIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <circle
-                cx="6"
-                cy="18"
-                r="2.5"
-            />
-            <circle
-                cx="18"
-                cy="6"
-                r="2.5"
-            />
-            <path d="M8.5 18H10a4 4 0 0 0 4-4v-2a4 4 0 0 1 4-4" />
-        </svg>
-    );
-}
-
-function GaugeIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M4 16a8 8 0 1 1 16 0" />
-            <path d="M12 12l4-3" />
-            <path d="M5 19h14" />
-        </svg>
-    );
-}
-
-function CalendarIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <rect
-                x="3"
-                y="4"
-                width="18"
-                height="17"
-                rx="2"
-            />
-            <path d="M16 2v4" />
-            <path d="M8 2v4" />
-            <path d="M3 10h18" />
-        </svg>
-    );
-}
-
-function FilterIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M4 6h16" />
-            <path d="M7 12h10" />
-            <path d="M10 18h4" />
-        </svg>
-    );
-}
-
-function CloseIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
-        >
-            <path d="m7 7 10 10" />
-            <path d="m17 7-10 10" />
-        </svg>
-    );
-}
-
-function AlertIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M10.3 3.8 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0Z" />
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-        </svg>
-    );
-}
-
-function EmptyIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <rect
-                x="4"
-                y="4"
-                width="16"
-                height="16"
-                rx="3"
-            />
-            <path d="M8 15l2.5-3 2.5 2 3-4" />
-        </svg>
-    );
-}
-
-function TrendingUpIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M3 17l6-6 4 4 7-8" />
-            <path d="M15 7h5v5" />
-        </svg>
-    );
-}
-
-function TrendingDownIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M3 7l6 6 4-4 7 8" />
-            <path d="M15 17h5v-5" />
-        </svg>
-    );
-}
-
-function ReceiptIcon() {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
-            <path d="M9 8h6" />
-            <path d="M9 12h6" />
-            <path d="M9 16h3" />
-        </svg>
     );
 }
 
