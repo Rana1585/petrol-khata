@@ -9,36 +9,39 @@ const items = [
 ];
 
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
-  const location = useLocation();
+  const { pathname } = useLocation();
   return (
     <aside className={`sidebar ${isOpen ? "sidebar-open" : ""}`} aria-label="Main navigation">
       <div className="sidebar-inner">
         <div className="sidebar-header">
-          <NavLink to="/vehicles" className="sidebar-brand" onClick={onClose}>
-            <span className="sidebar-logo"><Fuel size={22} strokeWidth={1.9} /></span>
+          <NavLink to="/vehicles" className="sidebar-brand" onClick={onClose} aria-label="Petrol Khata">
+            <span className="sidebar-logo"><Fuel size={24} strokeWidth={1.9} /></span>
             <span className="sidebar-brand-text"><strong>Petrol Khata</strong><small>Fuel management</small></span>
           </NavLink>
-          <button type="button" className="sidebar-close-button" onClick={onClose} aria-label="Close navigation"><X size={20}/></button>
+          <button type="button" className="sidebar-close-button" onClick={onClose} aria-label="Close navigation"><X size={20} /></button>
         </div>
-        <nav className="sidebar-nav" aria-label="Sections">
-          <div className="sidebar-section">
-            <span className="sidebar-section-title">WORKSPACE</span>
-            <div className="sidebar-section-links">
-              {items.map(({ label, path, Icon }) => (
-                <NavLink key={path} to={path} onClick={onClose}
-                  className={({isActive}) => `sidebar-link ${isActive || (path === "/vehicles" && location.pathname.startsWith("/vehicles/")) ? "active" : ""}`}>
-                  <span className="sidebar-icon"><Icon size={19} strokeWidth={1.85}/></span>
+
+        <nav className="sidebar-nav" aria-label="Workspace">
+          <span className="sidebar-section-title">Workspace</span>
+          <div className="sidebar-section-links">
+            {items.map(({ label, path, Icon }) => {
+              const active = pathname === path || (path === "/vehicles" && pathname.startsWith("/vehicles/"));
+              return (
+                <NavLink key={path} to={path} onClick={onClose} title={label}
+                  className={() => `sidebar-link ${active ? "active" : ""}`}>
+                  <span className="sidebar-icon"><Icon size={21} strokeWidth={1.8} /></span>
                   <span className="sidebar-link-label">{label}</span>
                 </NavLink>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </nav>
+
         <div className="sidebar-spacer" />
         <div className="sidebar-footer">
           <div className="sidebar-footer-card">
-            <span className="sidebar-footer-icon"><Gauge size={19} strokeWidth={1.8}/></span>
-            <span className="sidebar-footer-content"><strong>Every journey, organized.</strong><small>Your vehicle records in one place.</small></span>
+            <span className="sidebar-footer-icon"><Gauge size={19} strokeWidth={1.8} /></span>
+            <span className="sidebar-footer-content"><strong>Drive smarter</strong><small>Everything organized.</small></span>
           </div>
         </div>
       </div>
