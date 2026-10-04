@@ -1,0 +1,548 @@
+/* =========================================================
+   PETROL KHATA — LOGIN
+   ========================================================= */
+
+.pk-login-page,
+.pk-login-page * {
+  box-sizing: border-box;
+}
+
+.pk-login-page {
+  --login-green: #159d7b;
+  --login-green-dark: #0d795f;
+  --login-green-soft: #eaf7f2;
+  --login-ink: #14221d;
+  --login-muted: #6f7f78;
+  --login-border: #dde7e2;
+
+  position: relative;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 8% 12%,
+      rgba(21, 157, 123, 0.13),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 90% 88%,
+      rgba(21, 157, 123, 0.08),
+      transparent 28%
+    ),
+    #f4f8f6;
+}
+
+.pk-login-decoration {
+  position: absolute;
+  pointer-events: none;
+  border: 1px solid rgba(21, 157, 123, 0.12);
+  border-radius: 50%;
+}
+
+.pk-login-decoration-one {
+  width: 360px;
+  height: 360px;
+  top: -210px;
+  left: -150px;
+}
+
+.pk-login-decoration-two {
+  width: 300px;
+  height: 300px;
+  right: -140px;
+  bottom: -180px;
+}
+
+.pk-login-shell {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 460px;
+}
+
+.pk-login-card {
+  width: 100%;
+
+  padding: 38px;
+
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid var(--login-border);
+  border-radius: 26px;
+
+  box-shadow:
+    0 24px 70px rgba(25, 67, 53, 0.1);
+}
+
+.pk-login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+
+  color: var(--login-ink);
+  text-decoration: none;
+}
+
+.pk-login-brand-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+  background: var(--login-green);
+  border-radius: 13px;
+}
+
+.pk-login-brand-icon svg {
+  width: 21px !important;
+  height: 21px !important;
+  max-width: 21px !important;
+  max-height: 21px !important;
+}
+
+.pk-login-brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pk-login-brand-copy strong {
+  color: var(--login-ink);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.pk-login-brand-copy small {
+  color: #87958f;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.pk-login-heading {
+  margin-top: 34px;
+}
+
+.pk-login-eyebrow {
+  display: block;
+
+  margin-bottom: 9px;
+
+  color: var(--login-green);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.pk-login-heading h1 {
+  margin: 0;
+
+  color: var(--login-ink);
+
+  font-size: clamp(27px, 4vw, 34px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.pk-login-heading p {
+  margin: 12px 0 0;
+
+  max-width: 370px;
+
+  color: var(--login-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.pk-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+
+  margin-top: 31px;
+}
+
+.pk-login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pk-login-field label {
+  color: #33473f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pk-login-input {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+}
+
+.pk-login-input input {
+  appearance: none;
+
+  width: 100%;
+  height: 52px;
+
+  margin: 0;
+  padding: 0 46px;
+
+  color: var(--login-ink);
+  background: #ffffff;
+
+  border: 1px solid var(--login-border);
+  border-radius: 13px;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 13px;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.pk-login-input input::placeholder {
+  color: #9aa7a1;
+}
+
+.pk-login-input input:hover {
+  border-color: #c8d8d1;
+}
+
+.pk-login-input input:focus {
+  border-color: var(--login-green);
+
+  box-shadow:
+    0 0 0 4px rgba(21, 157, 123, 0.1);
+}
+
+.pk-login-input-icon {
+  position: absolute !important;
+  z-index: 2;
+
+  left: 15px;
+
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
+
+  color: #819189;
+
+  pointer-events: none;
+}
+
+.pk-login-password-toggle {
+  position: absolute;
+  z-index: 3;
+
+  right: 8px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: #819189;
+  background: transparent;
+
+  border: 0;
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.pk-login-password-toggle:hover {
+  color: var(--login-green-dark);
+  background: var(--login-green-soft);
+}
+
+.pk-login-password-toggle svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
+}
+
+.pk-login-error {
+  padding: 11px 13px;
+
+  color: #a83d3d;
+  background: #fff4f4;
+
+  border: 1px solid #f1cece;
+  border-radius: 11px;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pk-login-submit {
+  width: 100%;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  margin-top: 2px;
+  padding: 0 20px;
+
+  color: #ffffff;
+  background: var(--login-green);
+
+  border: 1px solid var(--login-green);
+  border-radius: 13px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 20px rgba(21, 157, 123, 0.2);
+
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.pk-login-submit:hover:not(:disabled) {
+  background: var(--login-green-dark);
+
+  box-shadow:
+    0 11px 25px rgba(21, 157, 123, 0.25);
+
+  transform: translateY(-1px);
+}
+
+.pk-login-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pk-login-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.pk-login-submit svg {
+  width: 17px !important;
+  height: 17px !important;
+  max-width: 17px !important;
+  max-height: 17px !important;
+}
+
+.pk-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  margin: 25px 0 16px;
+
+  color: #8b9993;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.pk-login-divider::before,
+.pk-login-divider::after {
+  content: "";
+
+  flex: 1;
+  height: 1px;
+
+  background: var(--login-border);
+}
+
+.pk-login-create {
+  width: 100%;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #30483f;
+  background: #ffffff;
+
+  border: 1px solid var(--login-border);
+  border-radius: 13px;
+
+  text-decoration: none;
+
+  font-size: 12px;
+  font-weight: 750;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.pk-login-create:hover {
+  color: var(--login-green-dark);
+  background: var(--login-green-soft);
+  border-color: #c5ded4;
+}
+
+.pk-login-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  margin-top: 19px;
+
+  color: #91a099;
+  font-size: 9px;
+  text-align: center;
+}
+
+.pk-login-security svg {
+  width: 13px !important;
+  height: 13px !important;
+  max-width: 13px !important;
+  max-height: 13px !important;
+
+  color: var(--login-green);
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .pk-login-page {
+    padding: 24px 16px;
+  }
+
+  .pk-login-shell {
+    max-width: 440px;
+  }
+
+  .pk-login-card {
+    padding: 32px 28px;
+    border-radius: 23px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 520px) {
+  .pk-login-page {
+    align-items: flex-start;
+
+    min-height: 100dvh;
+    padding: 18px 12px;
+
+    background: #f4f8f6;
+  }
+
+  .pk-login-shell {
+    max-width: none;
+  }
+
+  .pk-login-card {
+    padding: 25px 20px 24px;
+
+    border-radius: 20px;
+
+    box-shadow:
+      0 12px 35px rgba(25, 67, 53, 0.07);
+  }
+
+  .pk-login-brand-icon {
+    width: 39px;
+    height: 39px;
+    min-width: 39px;
+
+    border-radius: 12px;
+  }
+
+  .pk-login-heading {
+    margin-top: 27px;
+  }
+
+  .pk-login-heading h1 {
+    font-size: 27px;
+  }
+
+  .pk-login-heading p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .pk-login-form {
+    margin-top: 26px;
+    gap: 17px;
+  }
+
+  .pk-login-input input {
+    height: 50px;
+    font-size: 16px;
+  }
+
+  .pk-login-submit {
+    height: 50px;
+  }
+
+  .pk-login-divider {
+    margin-top: 23px;
+  }
+}
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 360px) {
+  .pk-login-page {
+    padding: 10px;
+  }
+
+  .pk-login-card {
+    padding: 22px 17px;
+  }
+
+  .pk-login-heading h1 {
+    font-size: 24px;
+  }
+}
